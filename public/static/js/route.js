@@ -98,11 +98,29 @@ function updateNightOptionVisibility(whenVal) {
   else nightBox.classList.add("hidden");
 }
 
+function parseLatLonText(q) {
+  const m = /^\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)\s*$/.exec(q);
+  if (!m) return null;
+  const lat = parseFloat(m[1]);
+  const lon = parseFloat(m[2]);
+  if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+    return { label: `${lat.toFixed(4)}, ${lon.toFixed(4)}`, lat, lon };
+  }
+  return null;
+}
+
 function setupSearchBox(input, btn, resultsList, onSelect) {
   if (!input || !btn || !resultsList) return;
   const performSearch = async () => {
     const q = input.value.trim();
     if (q.length < 2) return;
+    const directCoord = parseLatLonText(q);
+    if (directCoord) {
+      onSelect(directCoord);
+      input.value = directCoord.label;
+      resultsList.classList.add("hidden");
+      return;
+    }
     resultsList.classList.remove("hidden");
     resultsList.textContent = "Searching…";
     try {
@@ -188,14 +206,20 @@ async function runComparison() {
     scale: state.get(KEYS.SCALE, "naqi"),
   };
 
+  const originCoord = originInput?.value ? parseLatLonText(originInput.value) : null;
   if (selectedOrigin && originInput?.value === selectedOrigin.label) {
     payload.origin = { lat: selectedOrigin.lat, lon: selectedOrigin.lon };
+  } else if (originCoord) {
+    payload.origin = { lat: originCoord.lat, lon: originCoord.lon };
   } else if (originInput?.value.trim()) {
     payload.origin_text = originInput.value.trim();
   }
 
+  const destCoord = parseLatLonText(destVal);
   if (selectedDest && destVal === selectedDest.label) {
     payload.destination = { lat: selectedDest.lat, lon: selectedDest.lon };
+  } else if (destCoord) {
+    payload.destination = { lat: destCoord.lat, lon: destCoord.lon };
   } else {
     payload.destination_text = destVal;
   }
@@ -415,6 +439,7 @@ function renderResults(data) {
       sessionStorage.setItem(
         "bm:route_explain_ctx",
         JSON.stringify({
+          origin: data.origin,
           destination: data.destination,
           departure_time: data.departure_time,
         })

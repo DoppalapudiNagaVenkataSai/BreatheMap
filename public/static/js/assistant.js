@@ -14,6 +14,7 @@ const MODE_OPTIONS = [null, "walk", "cycle", "car", "auto", "bus", "metro"];
 const ACT_OPTIONS = [null, "walk", "jog", "cycle", "yoga", "play"];
 
 let localCtx = {
+  origin: null,
   departure_time: null,
   duration_min: null,
   mode: null,
@@ -82,6 +83,7 @@ function handleIncomingQueryParams() {
       const raw = sessionStorage.getItem(ROUTE_EXPLAIN_KEY);
       if (raw) {
         const routeCtx = JSON.parse(raw);
+        if (routeCtx.origin) localCtx.origin = routeCtx.origin;
         if (routeCtx.destination) localCtx.destination = routeCtx.destination;
         if (routeCtx.departure_time) localCtx.departure_time = routeCtx.departure_time;
         syncContextChips();
@@ -180,13 +182,14 @@ async function sendAssistantMessage(message) {
   const sensitive = state.get(KEYS.SENSITIVE, []);
   const isDemo = state.get(KEYS.DEMO, false);
 
+  const effectiveOrigin = localCtx.origin || loc;
   const payload = {
     message,
     recent_turns: getRecentTurns(),
     context: {
-      lat: loc.lat,
-      lon: loc.lon,
-      label: loc.label,
+      lat: effectiveOrigin.lat,
+      lon: effectiveOrigin.lon,
+      label: effectiveOrigin.label,
       scale,
       sensitive,
       departure_time: localCtx.departure_time,

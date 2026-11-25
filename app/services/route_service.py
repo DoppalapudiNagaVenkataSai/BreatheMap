@@ -1,6 +1,7 @@
 """BreatheRoute service orchestrating routing, exposure, lighting, and ranking."""
 
 import asyncio
+import re
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -79,6 +80,21 @@ def _check_night_trip(
     return is_night(departure, end_dt, sr, ss)
 
 
+_COORD_RE = re.compile(r"^\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)\s*$")
+
+
+def _parse_lat_lon_text(text: str) -> LatLon | None:
+    """Parse 'lat, lon' coordinate strings directly if within valid bounds."""
+    match = _COORD_RE.match(text)
+    if not match:
+        return None
+    lat = float(match.group(1))
+    lon = float(match.group(2))
+    if -90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0:
+        return LatLon(lat=lat, lon=lon)
+    return None
+
+
 class RouteService:
     """Orchestrates multi-mode exposure comparison and route optimization."""
 
@@ -108,6 +124,9 @@ class RouteService:
         if coord is not None:
             return coord, f"{coord.lat:.4f}, {coord.lon:.4f}"
         if text:
+            parsed_coord = _parse_lat_lon_text(text)
+            if parsed_coord is not None:
+                return parsed_coord, f"{parsed_coord.lat:.4f}, {parsed_coord.lon:.4f}"
             results = await self.geo_provider.search(text)
             if not results:
                 raise ValidationAppError(

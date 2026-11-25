@@ -6,6 +6,7 @@ from typing import Any
 
 import httpx
 
+from app.core.errors import ProviderUnavailableError
 from app.core.http import request_with_retry
 from app.providers.base import GeocodeProvider
 
@@ -37,6 +38,8 @@ class NominatimAdapter(GeocodeProvider):
             "addressdetails": 1,
         }
         res = await request_with_retry(self.client, "GET", NOMINATIM_SEARCH_URL, params=params)
+        if res.status_code >= 400:
+            raise ProviderUnavailableError(f"Nominatim search failed ({res.status_code})")
         data = res.json()
         results: list[dict[str, Any]] = []
         for item in data:
@@ -60,6 +63,8 @@ class NominatimAdapter(GeocodeProvider):
             "addressdetails": 1,
         }
         res = await request_with_retry(self.client, "GET", NOMINATIM_REVERSE_URL, params=params)
+        if res.status_code >= 400:
+            raise ProviderUnavailableError(f"Nominatim reverse failed ({res.status_code})")
         item = res.json()
         if "error" in item:
             return None

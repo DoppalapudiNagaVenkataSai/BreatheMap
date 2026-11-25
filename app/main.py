@@ -40,12 +40,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Initialize single shared store per process
     app.state.store = create_store(settings)
 
-    # Shared async HTTP client
+    # Shared async HTTP client with identifying User-Agent for Nominatim/OSM
     transport = httpx.AsyncHTTPTransport(retries=1)
     timeout = httpx.Timeout(
         connect=HTTP_CONNECT_TIMEOUT, read=HTTP_READ_TIMEOUT, write=5.0, pool=5.0
     )
-    async with httpx.AsyncClient(transport=transport, timeout=timeout) as client:
+    headers = {
+        "User-Agent": f"{APP_NAME}/{APP_VERSION} (+contact: {settings.NOMINATIM_CONTACT_EMAIL})",
+        "Accept": "application/json",
+    }
+    async with httpx.AsyncClient(transport=transport, timeout=timeout, headers=headers) as client:
         app.state.http_client = client
         yield
 
