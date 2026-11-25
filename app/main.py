@@ -12,7 +12,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import air, geo, health, pages
+from app.api import air, geo, health, pages, routes
 from app.config import get_settings
 from app.constants import (
     APP_NAME,
@@ -104,6 +104,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(geo.router)
     app.include_router(air.router)
+    app.include_router(routes.router)
     app.include_router(pages.router)
 
     return app

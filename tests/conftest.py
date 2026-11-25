@@ -11,8 +11,15 @@ os.environ["APP_SECRET"] = "a" * 32
 os.environ["STORE_BACKEND"] = "memory"
 os.environ["DEMO_MODE"] = "allow"
 
+from app.core.cache import l1_cache
 from app.main import app
 from app.storage.memory_store import MemoryStore
+
+
+@pytest.fixture(autouse=True)
+def clear_l1_cache() -> None:
+    """Ensure L1 cache is clean before each test."""
+    l1_cache.clear()
 
 
 @pytest.fixture

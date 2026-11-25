@@ -1,11 +1,35 @@
 # External Data Providers & Attribution
 
 ## Summary
-- **Open-Meteo Air Quality API**: Modelled hourly air quality data (PM2.5, PM10, NO2, SO2, O3, CO). Attribution: *Air quality data: Open-Meteo / CAMS (CC BY 4.0)*.
-- **Open-Meteo Forecast API**: Weather and solar timing. Attribution: *Weather data: Open-Meteo (CC BY 4.0)*.
-- **openrouteservice (ORS)**: Primary routing for walk, cycle, and driving. Attribution: *Routing: © openrouteservice.org / OpenStreetMap contributors*.
-- **FOSSGIS OSRM**: Fallback routing. Attribution: *Routing: FOSSGIS OSRM / OpenStreetMap contributors*.
-- **Nominatim**: Forward and reverse geocoding. Attribution: *Geocoding: Nominatim / OpenStreetMap contributors*.
-- **Overpass API**: Street lighting tags (`lit=*`). Attribution: *Street lighting tags: OpenStreetMap contributors*.
-- **OpenStreetMap Tiles**: Map visualizer. Attribution: *© OpenStreetMap contributors*.
-- **Google Gemini API**: Plain language AI explanations. Attribution: *AI explanations: Google Gemini*.
+- **Open-Meteo Air Quality API**: Modelled hourly air quality data (PM2.5, PM10, NO2, SO2, O3, CO, `us_aqi`).
+  - Endpoint: `GET https://air-quality-api.open-meteo.com/v1/air-quality`
+  - Resolution: CAMS global/regional atmospheric model (coarse grid ~40 km outside Europe; ~11 km in Europe).
+  - Attribution: *Air quality data: Open-Meteo / CAMS (CC BY 4.0)*.
+- **Open-Meteo Forecast API**: Weather and solar timing (`temperature_2m`, `relative_humidity_2m`, `wind_speed_10m`, `precipitation`, `sunrise`, `sunset`).
+  - Endpoint: `GET https://api.open-meteo.com/v1/forecast`
+  - Attribution: *Weather data: Open-Meteo (CC BY 4.0)*.
+- **openrouteservice (ORS) Directions v2**: Primary routing for `foot-walking`, `cycling-regular`, and `driving-car`.
+  - Endpoint: `POST https://api.openrouteservice.org/v2/directions/{profile}/geojson`
+  - Auth: `Authorization: <ORS_API_KEY>` header.
+  - Parameters: `coordinates` (`[[lon, lat], [lon, lat]]`), `extra_info: ["waytype"]`, `alternative_routes: {"target_count": 3, "weight_factor": 1.4, "share_factor": 0.6}` (only for routes < 100 km).
+  - Waytype IDs: 0=Unknown, 1=State Road (1.25), 2=Road (1.25), 3=Street (1.10), 4=Path (0.95), 5=Track (0.95), 6=Cycleway (0.95), 7=Footway (0.95), 8=Steps (0.95), 9=Ferry (1.00), 10=Construction (1.00).
+  - Attribution: *Routing: © openrouteservice.org / OpenStreetMap contributors*.
+- **FOSSGIS OSRM**: Fallback routing when ORS is unavailable or quota-exhausted.
+  - Endpoints:
+    - Walk: `GET https://routing.openstreetmap.de/routed-foot/route/v1/foot/{lon1},{lat1};{lon2},{lat2}?overview=full&geometries=geojson&alternatives=true`
+    - Cycle: `GET https://routing.openstreetmap.de/routed-bike/route/v1/bike/{lon1},{lat1};{lon2},{lat2}?overview=full&geometries=geojson&alternatives=true`
+    - Car: `GET https://routing.openstreetmap.de/routed-car/route/v1/car/{lon1},{lat1};{lon2},{lat2}?overview=full&geometries=geojson&alternatives=true`
+  - Policy: Light use only (~1 req/s); no waytype metadata (`None`).
+  - Attribution: *Routing: FOSSGIS OSRM / OpenStreetMap contributors*.
+- **Nominatim**: Forward and reverse geocoding.
+  - Endpoints: `https://nominatim.openstreetmap.org/search`, `https://nominatim.openstreetmap.org/reverse`
+  - Policy: Max 1 req/s, identifying `User-Agent` with contact email, no autocomplete, 7-day cache.
+  - Attribution: *Geocoding: Nominatim / OpenStreetMap contributors*.
+- **Overpass API**: Street lighting tags (`lit=*`) for night walk/cycle trips.
+  - Endpoint: `POST https://overpass-api.de/api/interpreter`
+  - Query: `[out:json][timeout:10];way[highway](around:25,lat1,lon1,...);out tags geom;` (polyline downsampled to <= 60 points).
+  - Attribution: *Street lighting tags: OpenStreetMap contributors*.
+- **OpenStreetMap Tiles & Leaflet**: Map visualizer (`leaflet` 1.9.4, BSD-2-Clause, vendored locally).
+  - Attribution: *© OpenStreetMap contributors*.
+- **Google Gemini API**: Plain language AI explanations (`gemini-3.8-flash` via `google-genai` SDK).
+  - Attribution: *AI explanations: Google Gemini*.

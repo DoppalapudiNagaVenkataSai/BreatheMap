@@ -1,0 +1,110 @@
+{
+  "synthetic": true,
+  "trips": [
+    {
+      "name": "Connaught Place to New Delhi Railway Station",
+      "origin": [28.6315, 77.2167],
+      "destination": [28.6430, 77.2194],
+      "modes": {
+        "walk": [
+          {
+            "distance_m": 1650.0,
+            "duration_s": 1188.0,
+            "coordinates": [
+              [28.6315, 77.2167],
+              [28.6340, 77.2175],
+              [28.6372, 77.2182],
+              [28.6401, 77.2189],
+              [28.6430, 77.2194]
+            ],
+            "waytypes": ["street", "footway", "street", "major"]
+          },
+          {
+            "distance_m": 1820.0,
+            "duration_s": 1310.0,
+            "coordinates": [
+              [28.6315, 77.2167],
+              [28.6335, 77.2150],
+              [28.6380, 77.2158],
+              [28.6410, 77.2175],
+              [28.6430, 77.2194]
+            ],
+            "waytypes": ["footway", "path", "street", "street"]
+          }
+        ],
+        "cycle": [
+          {
+            "distance_m": 1750.0,
+            "duration_s": 420.0,
+            "coordinates": [
+              [28.6315, 77.2167],
+              [28.6345, 77.2178],
+              [28.6385, 77.2186],
+              [28.6430, 77.2194]
+            ],
+            "waytypes": ["street", "major", "street"]
+          }
+        ],
+        "car": [
+          {
+            "distance_m": 2100.0,
+            "duration_s": 480.0,
+            "coordinates": [
+              [28.6315, 77.2167],
+              [28.6330, 77.2205],
+              [28.6385, 77.2212],
+              [28.6430, 77.2194]
+            ],
+            "waytypes": ["major", "state", "major"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Lodhi Garden to India Gate",
+      "origin": [28.5931, 77.2197],
+      "destination": [28.6129, 77.2295],
+      "modes": {
+        "walk": [
+          {
+            "distance_m": 2600.0,
+            "duration_s": 1872.0,
+            "coordinates": [
+              [28.5931, 77.2197],
+              [28.5990, 77.2225],
+              [28.6060, 77.2260],
+              [28.6129, 77.2295]
+            ],
+            "waytypes": ["footway", "street", "footway"]
+          }
+        ],
+        "cycle": [
+          {
+            "distance_m": 2700.0,
+            "duration_s": 650.0,
+            "coordinates": [
+              [28.5931, 77.2197],
+              [28.5995, 77.2230],
+              [28.6065, 77.2265],
+              [28.6129, 77.2295]
+            ],
+            "waytypes": ["street", "major", "street"]
+          }
+        ],
+        "car": [
+          {
+            "distance_m": 3100.0,
+            "duration_s": 540.0,
+            "coordinates": [
+              [28.5931, 77.2197],
+              [28.6005, 77.2250],
+              [28.6080, 77.2280],
+              [28.6129, 77.2295]
+            ],
+            "waytypes": ["major", "state", "major"]
+          }
+        ]
+      }
+    }
+  ]
+}
