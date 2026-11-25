@@ -1,0 +1,38 @@
+[
+  {
+    "label": "Connaught Place, New Delhi",
+    "lat": 28.6315,
+    "lon": 77.2167,
+    "country_code": "in"
+  },
+  {
+    "label": "New Delhi Railway Station, Paharganj, New Delhi",
+    "lat": 28.6430,
+    "lon": 77.2194,
+    "country_code": "in"
+  },
+  {
+    "label": "India Gate, Central Secretariat, New Delhi",
+    "lat": 28.6129,
+    "lon": 77.2295,
+    "country_code": "in"
+  },
+  {
+    "label": "Lodhi Garden, Lodhi Road, New Delhi",
+    "lat": 28.5931,
+    "lon": 77.2197,
+    "country_code": "in"
+  },
+  {
+    "label": "Anand Vihar ISBT, East Delhi",
+    "lat": 28.6469,
+    "lon": 77.3160,
+    "country_code": "in"
+  },
+  {
+    "label": "Hauz Khas Village, South Delhi",
+    "lat": 28.5494,
+    "lon": 77.2001,
+    "country_code": "in"
+  }
+]
