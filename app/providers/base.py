@@ -1,10 +1,8 @@
 """Data provider protocols."""
 
-from datetime import datetime
 from typing import Any, Protocol, runtime_checkable
 
-from app.domain.exposure import AirPoint
-from app.domain.models import AirSnapshot, LatLon
+from app.domain.models import LatLon
 
 
 @runtime_checkable

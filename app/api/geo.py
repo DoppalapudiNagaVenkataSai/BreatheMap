@@ -1,7 +1,9 @@
 """Geocoding, place search, and reverse geocoding endpoints."""
 
 from typing import Any
+
 from fastapi import APIRouter, Depends, Query, Request
+
 from app.config import Settings
 from app.dependencies import get_app_settings, get_http_client
 from app.providers.demo import DemoProvider

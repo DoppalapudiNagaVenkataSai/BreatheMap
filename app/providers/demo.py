@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 from typing import Any
+
 from app.domain.models import LatLon
 from app.providers.base import AirProvider, GeocodeProvider, WeatherProvider
 

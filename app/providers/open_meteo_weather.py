@@ -1,7 +1,9 @@
 """Open-Meteo Weather Forecast API client adapter."""
 
 from typing import Any
+
 import httpx
+
 from app.core.http import request_with_retry
 from app.domain.models import LatLon
 from app.providers.base import WeatherProvider
@@ -23,7 +25,5 @@ class OpenMeteoWeatherAdapter(WeatherProvider):
             "daily": "sunrise,sunset",
             "timezone": "auto",
         }
-        res = await request_with_retry(
-            self.client, "GET", OPEN_METEO_FORECAST_URL, params=params
-        )
+        res = await request_with_retry(self.client, "GET", OPEN_METEO_FORECAST_URL, params=params)
         return res.json()  # type: ignore[no-any-return]

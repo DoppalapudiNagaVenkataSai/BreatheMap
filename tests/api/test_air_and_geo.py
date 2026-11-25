@@ -86,12 +86,14 @@ async def test_nominatim_search_and_reverse(client: AsyncClient) -> None:
     respx.get("https://nominatim.openstreetmap.org/search").mock(
         return_value=Response(
             200,
-            json=[{
-                "display_name": "Connaught Place, New Delhi",
-                "lat": "28.6315",
-                "lon": "77.2167",
-                "address": {"country_code": "in"},
-            }],
+            json=[
+                {
+                    "display_name": "Connaught Place, New Delhi",
+                    "lat": "28.6315",
+                    "lon": "77.2167",
+                    "address": {"country_code": "in"},
+                }
+            ],
         )
     )
     respx.get("https://nominatim.openstreetmap.org/reverse").mock(

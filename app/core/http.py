@@ -2,7 +2,9 @@
 
 import asyncio
 from typing import Any
+
 import httpx
+
 from app.constants import APP_NAME, APP_VERSION, HTTP_CONNECT_TIMEOUT, HTTP_READ_TIMEOUT
 from app.core.errors import ProviderUnavailableError
 

@@ -70,19 +70,25 @@ class AirService:
             if current_co is not None:
                 current_co /= 1000.0  # µg/m³ to mg/m³
 
-            aqi_res = naqi({
-                "pm25": current_pm25,
-                "pm10": current_pm10,
-                "no2": current_no2,
-                "so2": current_so2,
-                "o3": current_o3,
-                "co": current_co,
-            })
+            aqi_res = naqi(
+                {
+                    "pm25": current_pm25,
+                    "pm10": current_pm10,
+                    "no2": current_no2,
+                    "so2": current_so2,
+                    "o3": current_o3,
+                    "co": current_co,
+                }
+            )
 
             us_aqi_val = current_air.get("us_aqi")
 
             final_index = aqi_res.index if scale == Scale.NAQI else us_aqi_val
-            final_level = aqi_res.level if scale == Scale.NAQI else (us_level(us_aqi_val) if us_aqi_val else Level.L1)
+            final_level = (
+                aqi_res.level
+                if scale == Scale.NAQI
+                else (us_level(us_aqi_val) if us_aqi_val else Level.L1)
+            )
 
             # Weather context
             hourly_weather = weather_raw.get("hourly", {})
@@ -123,8 +129,13 @@ class AirService:
                     "observed_at": datetime.now(tz=UTC).isoformat(),
                     "is_demo": is_demo,
                     "warnings": [
-                        "Indicative NAQI, calculated from modelled data — not an official CPCB station reading."
-                    ] if scale == Scale.NAQI else [],
+                        (
+                            "Indicative NAQI, calculated from modelled data"
+                            " — not an official CPCB station reading."
+                        )
+                    ]
+                    if scale == Scale.NAQI
+                    else [],
                 },
             }
 

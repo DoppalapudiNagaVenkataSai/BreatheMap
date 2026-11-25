@@ -3,7 +3,9 @@
 import asyncio
 import time
 from typing import Any
+
 import httpx
+
 from app.core.http import request_with_retry
 from app.providers.base import GeocodeProvider
 
@@ -34,19 +36,19 @@ class NominatimAdapter(GeocodeProvider):
             "limit": 5,
             "addressdetails": 1,
         }
-        res = await request_with_retry(
-            self.client, "GET", NOMINATIM_SEARCH_URL, params=params
-        )
+        res = await request_with_retry(self.client, "GET", NOMINATIM_SEARCH_URL, params=params)
         data = res.json()
         results: list[dict[str, Any]] = []
         for item in data:
             addr = item.get("address", {})
-            results.append({
-                "label": item.get("display_name", ""),
-                "lat": float(item["lat"]),
-                "lon": float(item["lon"]),
-                "country_code": addr.get("country_code", "in").lower(),
-            })
+            results.append(
+                {
+                    "label": item.get("display_name", ""),
+                    "lat": float(item["lat"]),
+                    "lon": float(item["lon"]),
+                    "country_code": addr.get("country_code", "in").lower(),
+                }
+            )
         return results
 
     async def reverse(self, lat: float, lon: float) -> dict[str, Any] | None:
@@ -57,9 +59,7 @@ class NominatimAdapter(GeocodeProvider):
             "format": "jsonv2",
             "addressdetails": 1,
         }
-        res = await request_with_retry(
-            self.client, "GET", NOMINATIM_REVERSE_URL, params=params
-        )
+        res = await request_with_retry(self.client, "GET", NOMINATIM_REVERSE_URL, params=params)
         item = res.json()
         if "error" in item:
             return None
