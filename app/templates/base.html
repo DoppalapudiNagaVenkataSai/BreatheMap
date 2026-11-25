@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title | default("BreatheMap") }}</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header>
+    <nav aria-label="Main">
+      <div class="logo"><strong>BreatheMap</strong></div>
+      <ul>
+        <li><a href="/" aria-current="page">Air</a></li>
+        <li><a href="/route">BreatheRoute</a></li>
+        <li><a href="/assistant">Assistant</a></li>
+        <li><a href="/watch">BreatheWatch</a></li>
+        <li><a href="/about">About</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div class="hero">
+      <h1>Reduce your estimated personal air pollution exposure</h1>
+      <p>Decide when to go out, how to travel, and which route to take.</p>
+      <div class="status-banner">
+        <span>Phase 1 Initialized — Core API & Guardrails Active</span>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>BreatheMap provides comparative exposure estimates, not medical advice. Air quality data: Open-Meteo.</p>
+  </footer>
+
+  <noscript>
+    <div class="noscript-warning">
+      <p>JavaScript is required for interactive map routing and AI explanations. The About page remains fully accessible.</p>
+    </div>
+  </noscript>
+</body>
+</html>
