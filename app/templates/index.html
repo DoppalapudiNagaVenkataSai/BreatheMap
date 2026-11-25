@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="air-view" aria-label="Local Air Quality Snapshot">
+  <div class="air-card" id="air-card">
+    <div class="card-header">
+      <div class="aqi-badge level-l1" id="aqi-level-badge">
+        <span class="aqi-number" id="aqi-number">--</span>
+        <span class="aqi-band" id="aqi-band">Loading…</span>
+      </div>
+      <div class="aqi-context">
+        <h1 id="air-headline">Air Quality Outlook</h1>
+        <p class="dominant-pollutant" id="dominant-pollutant-text">Dominant pollutant: --</p>
+        <p class="provenance-note" id="provenance-note">Modelled data · Updating…</p>
+      </div>
+    </div>
+
+    <div class="weather-strip" id="weather-strip" aria-label="Current Weather">
+      <div class="weather-item"><span class="w-label">Temperature:</span> <strong id="w-temp">--°C</strong></div>
+      <div class="weather-item"><span class="w-label">Humidity:</span> <strong id="w-hum">--%</strong></div>
+      <div class="weather-item"><span class="w-label">Wind:</span> <strong id="w-wind">-- km/h</strong></div>
+    </div>
+
+    <!-- Pollutant Breakdown Grid -->
+    <div class="pollutants-grid" id="pollutants-grid" aria-label="Current Pollutant Concentrations">
+      <div class="pollutant-cell"><span class="p-name">PM2.5</span><span class="p-val" id="val-pm25">-- µg/m³</span></div>
+      <div class="pollutant-cell"><span class="p-name">PM10</span><span class="p-val" id="val-pm10">-- µg/m³</span></div>
+      <div class="pollutant-cell"><span class="p-name">NO₂</span><span class="p-val" id="val-no2">-- µg/m³</span></div>
+      <div class="pollutant-cell"><span class="p-name">O₃</span><span class="p-val" id="val-o3">-- µg/m³</span></div>
+      <div class="pollutant-cell"><span class="p-name">CO</span><span class="p-val" id="val-co">-- mg/m³</span></div>
+      <div class="pollutant-cell"><span class="p-name">SO₂</span><span class="p-val" id="val-so2">-- µg/m³</span></div>
+    </div>
+
+    <!-- Cleanest & Worst Windows -->
+    <div class="windows-container" aria-label="24-Hour Opportunity Windows">
+      <div class="window-box cleanest" id="window-cleanest">
+        <h3>Cleanest 3-Hour Window</h3>
+        <p class="window-time" id="cleanest-time">Calculating…</p>
+        <p class="window-val" id="cleanest-avg">-- µg/m³ PM2.5</p>
+      </div>
+      <div class="window-box worst" id="window-worst">
+        <h3>Peak Smog Window</h3>
+        <p class="window-time" id="worst-time">Calculating…</p>
+        <p class="window-val" id="worst-avg">-- µg/m³ PM2.5</p>
+      </div>
+    </div>
+
+    <!-- 24-Hour Outlook Chart & Accessible Table Alternative -->
+    <div class="chart-section" aria-label="24-Hour Hourly Outlook">
+      <div class="chart-header">
+        <h2>24-Hour PM2.5 Outlook</h2>
+        <button id="btn-toggle-table" class="btn-text" type="button" aria-expanded="false" aria-controls="hourly-table">Show as table</button>
+      </div>
+      <div id="chart-container" class="chart-container">
+        <!-- SVG rendered dynamically -->
+      </div>
+      <div id="table-container" class="table-container hidden">
+        <table id="hourly-table" class="data-table">
+          <thead>
+            <tr><th scope="col">Time</th><th scope="col">PM2.5 (µg/m³)</th></tr>
+          </thead>
+          <tbody id="hourly-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Fast Ask / Shortcuts -->
+    <div class="ask-box-strip" aria-label="AI Air Assistant Shortcut">
+      <form id="home-ask-form" class="ask-form" action="/assistant" method="GET">
+        <label for="home-ask-input">Have a question about the air today?</label>
+        <div class="ask-input-group">
+          <input type="text" id="home-ask-input" name="q" placeholder="e.g. When is the best time to jog today?" maxlength="200">
+          <button type="submit" class="btn-primary">Ask Assistant</button>
+        </div>
+      </form>
+      <div class="feature-shortcuts">
+        <a href="/route" class="shortcut-link">Compare Routes on BreatheRoute →</a>
+        <a href="/watch" class="shortcut-link">View Community Reports →</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

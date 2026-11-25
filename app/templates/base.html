@@ -3,42 +3,110 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ title | default("BreatheMap") }}</title>
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <title>{{ title | default("BreatheMap — Air Quality Decision Support") }}</title>
+  <meta name="description" content="Reduce your estimated personal air pollution exposure. Decide when to travel, how to travel, and which route to take.">
+  <link rel="stylesheet" href="/static/css/styles.css?v={{ version | default('0.1.0') }}">
+  <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to main content</a>
+
   <header>
-    <nav aria-label="Main">
-      <div class="logo"><strong>BreatheMap</strong></div>
-      <ul>
-        <li><a href="/" aria-current="page">Air</a></li>
-        <li><a href="/route">BreatheRoute</a></li>
-        <li><a href="/assistant">Assistant</a></li>
-        <li><a href="/watch">BreatheWatch</a></li>
-        <li><a href="/about">About</a></li>
-      </ul>
-    </nav>
+    <div class="header-container">
+      <div class="logo">
+        <a href="/" class="brand-link">
+          <strong>BreatheMap</strong>
+        </a>
+      </div>
+      <nav aria-label="Main">
+        <ul>
+          <li><a href="/" {% if active_page == 'air' %}aria-current="page"{% endif %}>Air</a></li>
+          <li><a href="/route" {% if active_page == 'route' %}aria-current="page"{% endif %}>BreatheRoute</a></li>
+          <li><a href="/assistant" {% if active_page == 'assistant' %}aria-current="page"{% endif %}>Assistant</a></li>
+          <li><a href="/watch" {% if active_page == 'watch' %}aria-current="page"{% endif %}>BreatheWatch</a></li>
+          <li><a href="/about" {% if active_page == 'about' %}aria-current="page"{% endif %}>About</a></li>
+        </ul>
+      </nav>
+    </div>
   </header>
 
-  <main id="main">
-    <div class="hero">
-      <h1>Reduce your estimated personal air pollution exposure</h1>
-      <p>Decide when to go out, how to travel, and which route to take.</p>
-      <div class="status-banner">
-        <span>Phase 1 Initialized — Core API & Guardrails Active</span>
+  <div id="demo-banner" class="demo-banner hidden" role="region" aria-label="Demo mode indicator">
+    <div class="banner-inner">
+      <span><strong>Delhi sample data active</strong> — Showing simulated winter conditions for demonstration.</span>
+      <button id="btn-toggle-demo" class="btn-text" type="button">Switch to live</button>
+    </div>
+  </div>
+
+  <section class="location-bar" aria-label="Current location and settings">
+    <div class="location-inner">
+      <div class="location-status">
+        <span id="loc-icon" aria-hidden="true">📍</span>
+        <span id="current-location-text">Detecting location…</span>
+        <button id="btn-change-location" class="btn-chip" type="button">Change</button>
+      </div>
+      <div class="settings-controls">
+        <label for="scale-select" class="sr-only">AQI Scale</label>
+        <select id="scale-select" class="select-chip">
+          <option value="naqi">CPCB NAQI (India)</option>
+          <option value="us">US EPA AQI</option>
+        </select>
+
+        <label for="sensitive-toggle" class="chip-toggle">
+          <input type="checkbox" id="sensitive-toggle">
+          <span>Cautious Mode</span>
+        </label>
       </div>
     </div>
+  </section>
+
+  <!-- Location Search Modal / Dialog -->
+  <dialog id="location-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-content">
+      <h2 id="dialog-title">Choose Location</h2>
+      <p class="dialog-desc">Select how to set your location. Geolocation is requested only when you choose.</p>
+      
+      <div class="dialog-actions">
+        <button id="btn-use-gps" class="btn-primary" type="button">Use my location</button>
+        <button id="btn-use-delhi" class="btn-secondary" type="button">Try Delhi sample</button>
+      </div>
+
+      <form id="search-location-form" class="search-form" onsubmit="return false;">
+        <label for="location-search-input">Or search city, landmark or area:</label>
+        <div class="search-input-group">
+          <input type="text" id="location-search-input" placeholder="e.g. Connaught Place, New Delhi" autocomplete="off">
+          <button id="btn-search-loc" class="btn-primary" type="button">Search</button>
+        </div>
+      </form>
+
+      <ul id="search-results-list" class="results-list" role="listbox" aria-label="Location search results"></ul>
+
+      <div class="dialog-footer">
+        <button id="btn-close-dialog" class="btn-text" type="button">Cancel</button>
+      </div>
+    </div>
+  </dialog>
+
+  <main id="main">
+    {% block content %}
+    {% endblock %}
   </main>
 
   <footer>
-    <p>BreatheMap provides comparative exposure estimates, not medical advice. Air quality data: Open-Meteo.</p>
+    <div class="footer-container">
+      <p>BreatheMap helps reduce estimated personal air pollution exposure. Comparative model estimates, not medical advice.</p>
+      <p class="attributions">Data: Open-Meteo (CAMS modelled data) · OpenStreetMap contributors · Google Gemini (free tier).</p>
+      <p class="version-tag">Version {{ version | default('0.1.0') }}</p>
+    </div>
   </footer>
 
+  <div id="aria-announcer" class="sr-only" role="status" aria-live="polite"></div>
+
   <noscript>
-    <div class="noscript-warning">
-      <p>JavaScript is required for interactive map routing and AI explanations. The About page remains fully accessible.</p>
+    <div class="noscript-warning" role="alert">
+      <p>JavaScript is disabled in your browser. Interactive air forecasts, routing comparisons, and the AI Assistant require JavaScript. You can still read the methodology and privacy guidelines on the <a href="/about">About page</a>.</p>
     </div>
   </noscript>
+
+  <script type="module" src="/static/js/air.js?v={{ version | default('0.1.0') }}"></script>
 </body>
 </html>
