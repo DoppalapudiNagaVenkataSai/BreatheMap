@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="route-page" aria-label="BreatheRoute Mode Comparison">
+  <h1>BreatheRoute — Compare Exposure by Mode</h1>
+  <p class="lead">Compare travel modes by estimated PM2.5 inhaled, not just speed or distance.</p>
+
+  <form id="route-compare-form" class="route-form" novalidate>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="route-origin-input">From (Origin) <span class="req">*</span></label>
+        <div class="input-with-btn">
+          <input type="text" id="route-origin-input" name="origin" placeholder="Using your selected location" autocomplete="off" aria-describedby="origin-hint">
+          <button type="button" id="btn-origin-search" class="btn-secondary">Search</button>
+        </div>
+        <span id="origin-hint" class="field-hint">Defaults to your current bar location. Press Enter or Search to pick another place.</span>
+        <ul id="origin-results" class="results-list hidden" role="listbox" aria-label="Origin search results"></ul>
+      </div>
+
+      <div class="form-group">
+        <label for="route-dest-input">To (Destination) <span class="req">*</span></label>
+        <div class="input-with-btn">
+          <input type="text" id="route-dest-input" name="destination" placeholder="e.g. New Delhi Railway Station" autocomplete="off" required aria-describedby="dest-hint">
+          <button type="button" id="btn-dest-search" class="btn-secondary">Search</button>
+        </div>
+        <span id="dest-hint" class="field-hint">Type a landmark or area and press Enter or Search.</span>
+        <ul id="dest-results" class="results-list hidden" role="listbox" aria-label="Destination search results"></ul>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="route-when-input">Departure Time</label>
+        <div class="input-with-btn">
+          <input type="datetime-local" id="route-when-input" name="when">
+          <button type="button" id="btn-when-now" class="btn-secondary">Now</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="route-flex-select">Time Flexibility</label>
+        <select id="route-flex-select" name="flexibility">
+          <option value="0">None (exact time)</option>
+          <option value="60">± 1 hour</option>
+          <option value="120" selected>± 2 hours</option>
+          <option value="180">± 3 hours</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="route-sort-select">Sort By</label>
+        <select id="route-sort-select" name="sort">
+          <option value="least_pollution" selected>Least pollution breathed</option>
+          <option value="fastest">Fastest</option>
+          <option value="balanced">Balanced</option>
+        </select>
+      </div>
+    </div>
+
+    <fieldset class="modes-fieldset">
+      <legend>Travel Modes to Compare</legend>
+      <div class="modes-checkboxes">
+        <label><input type="checkbox" name="modes" value="walk" checked> Walk</label>
+        <label><input type="checkbox" name="modes" value="cycle" checked> Cycle</label>
+        <label><input type="checkbox" name="modes" value="car" checked> Car</label>
+        <label><input type="checkbox" name="modes" value="auto" checked> Auto-rickshaw (est.)</label>
+        <label><input type="checkbox" name="modes" value="bus" checked> Bus (est.)</label>
+        <label><input type="checkbox" name="modes" value="metro" checked> Metro (est.)</label>
+      </div>
+    </fieldset>
+
+    <div id="night-lighting-option" class="night-option hidden">
+      <label for="prefer-lit-checkbox" class="chip-toggle">
+        <input type="checkbox" id="prefer-lit-checkbox" name="prefer_lit">
+        <span>Prefer lit streets (night trip)</span>
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" id="btn-compare-routes" class="btn-primary">Compare Routes</button>
+      <button type="button" id="btn-route-demo" class="btn-secondary">Try Delhi sample trip</button>
+    </div>
+  </form>
+
+  <!-- Loading Skeleton -->
+  <div id="route-loading" class="route-loading hidden" role="status" aria-live="polite">
+    <p>Comparing routes and air quality forecasts…</p>
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+  </div>
+
+  <!-- Error State -->
+  <div id="route-error" class="error-banner hidden" role="alert">
+    <p id="route-error-text"></p>
+    <button type="button" id="btn-error-sample" class="btn-secondary">Try sample data</button>
+  </div>
+
+  <!-- Results Section -->
+  <section id="route-results" class="route-results hidden" aria-label="Comparison Results">
+    <h2 id="results-heading" tabindex="-1">Comparison Results</h2>
+    <p id="route-headline" class="headline-sentence"></p>
+
+    <div id="departure-suggestion-box" class="suggestion-box hidden">
+      <p id="departure-suggestion-text"></p>
+      <button type="button" id="btn-use-suggested-time" class="btn-primary">Use this time</button>
+    </div>
+
+    <div class="results-split">
+      <div class="cards-column">
+        <div id="mode-cards-list" class="mode-cards-list"></div>
+      </div>
+
+      <div class="map-column">
+        <div id="route-map" class="map-box" role="region" aria-label="Route comparison map"></div>
+        <div id="map-legend" class="map-legend" aria-label="Map line patterns legend"></div>
+        <p class="map-text-note">Route steps aren't listed; the map shows the path. Every exposure figure is listed in the mode cards.</p>
+      </div>
+    </div>
+
+    <div id="route-reports-box" class="reports-box">
+      <h3>Community Reports Along Route</h3>
+      <p id="route-reports-text">No unverified community reports along this route.</p>
+      <ul id="route-reports-list" class="reports-list"></ul>
+    </div>
+
+    <div id="route-warnings-box" class="warnings-box hidden">
+      <h3>Notes &amp; Data Limitations</h3>
+      <ul id="route-warnings-list"></ul>
+    </div>
+
+    <div class="results-footer-links">
+      <a href="/about" class="shortcut-link">How is this calculated?</a>
+      <a id="link-explain-ai" href="/assistant" class="btn-secondary">Explain this with AI</a>
+    </div>
+  </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/vendor/leaflet/leaflet.js?v={{ version | default('0.1.0') }}" defer></script>
+<script type="module" src="/static/js/route.js?v={{ version | default('0.1.0') }}" defer></script>
+{% endblock %}

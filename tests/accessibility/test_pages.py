@@ -47,3 +47,5 @@ async def test_page_accessibility_and_landmarks(client: AsyncClient, path: str) 
     assert parser.has_skip_link is True, f"Missing skip-link on {path}"
     assert parser.has_main is True, f"Missing main id='main' on {path}"
     assert parser.h1_count == 1, f"Expected exactly one <h1> on {path}, got {parser.h1_count}"
+    if path == "/route":
+        assert 'role="region"' in html and 'aria-label="Route comparison map"' in html

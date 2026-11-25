@@ -81,3 +81,7 @@
   </div>
 </section>
 {% endblock %}
+
+{% block scripts %}
+<script type="module" src="/static/js/air.js?v={{ version | default('0.1.0') }}" defer></script>
+{% endblock %}

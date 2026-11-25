@@ -34,17 +34,12 @@ async def about_page(request: Request) -> HTMLResponse:
 
 @router.get("/route", response_class=HTMLResponse)
 async def route_page(request: Request) -> HTMLResponse:
-    """Render BreatheRoute stub page."""
+    """Render BreatheRoute interactive mode comparison page."""
     return templates.TemplateResponse(
         request=request,
-        name="stub.html",
+        name="route.html",
         context={
             "title": "BreatheRoute — Route Mode Comparison",
-            "page_title": "BreatheRoute",
-            "description": (
-                "Compare travel modes by estimated PM2.5 inhaled"
-                " and find cleaner departure windows."
-            ),
             "active_page": "route",
         },
     )

@@ -107,6 +107,7 @@
     </div>
   </noscript>
 
-  <script type="module" src="/static/js/air.js?v={{ version | default('0.1.0') }}"></script>
+  <script type="module" src="/static/js/common.js?v={{ version | default('0.1.0') }}" defer></script>
+  {% block scripts %}{% endblock %}
 </body>
 </html>
