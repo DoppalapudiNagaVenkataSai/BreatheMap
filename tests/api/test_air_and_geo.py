@@ -47,7 +47,7 @@ async def test_air_service_demo_flow() -> None:
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_open_meteo_adapters_respx(client: AsyncClient) -> None:
+async def test_open_meteo_adapters_respx() -> None:
     mock_air_res = {
         "current": {"pm2_5": 85.0, "pm10": 120.0, "us_aqi": 160},
         "hourly": {
@@ -69,20 +69,21 @@ async def test_open_meteo_adapters_respx(client: AsyncClient) -> None:
     respx.get(OPEN_METEO_AIR_URL).mock(return_value=Response(200, json=mock_air_res))
     respx.get(OPEN_METEO_FORECAST_URL).mock(return_value=Response(200, json=mock_weather_res))
 
-    air_adapter = OpenMeteoAirAdapter(client)
-    weather_adapter = OpenMeteoWeatherAdapter(client)
-    loc = LatLon(lat=28.6, lon=77.2)
+    async with AsyncClient() as http_cli:
+        air_adapter = OpenMeteoAirAdapter(http_cli)
+        weather_adapter = OpenMeteoWeatherAdapter(http_cli)
+        loc = LatLon(lat=28.6, lon=77.2)
 
-    air_data = await air_adapter.get_air(loc)
-    assert air_data["current"]["pm2_5"] == 85.0
+        air_data = await air_adapter.get_air(loc)
+        assert air_data["current"]["pm2_5"] == 85.0
 
-    weather_data = await weather_adapter.get_weather(loc)
-    assert weather_data["daily"]["sunrise"] == ["2026-11-25T06:30"]
+        weather_data = await weather_adapter.get_weather(loc)
+        assert weather_data["daily"]["sunrise"] == ["2026-11-25T06:30"]
 
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_nominatim_search_and_reverse(client: AsyncClient) -> None:
+async def test_nominatim_search_and_reverse() -> None:
     respx.get("https://nominatim.openstreetmap.org/search").mock(
         return_value=Response(
             200,
@@ -108,14 +109,15 @@ async def test_nominatim_search_and_reverse(client: AsyncClient) -> None:
         )
     )
 
-    nom = NominatimAdapter(client)
-    results = await nom.search("Connaught Place")
-    assert len(results) == 1
-    assert results[0]["country_code"] == "in"
+    async with AsyncClient() as http_cli:
+        nom = NominatimAdapter(http_cli)
+        results = await nom.search("Connaught Place")
+        assert len(results) == 1
+        assert results[0]["country_code"] == "in"
 
-    rev = await nom.reverse(28.6315, 77.2167)
-    assert rev is not None
-    assert rev["label"] == "Connaught Place, New Delhi"
+        rev = await nom.reverse(28.6315, 77.2167)
+        assert rev is not None
+        assert rev["label"] == "Connaught Place, New Delhi"
 
 
 @pytest.mark.asyncio
