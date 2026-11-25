@@ -206,9 +206,9 @@ async function sendAssistantMessage(message) {
       },
       body: JSON.stringify(payload),
     });
-    const body = await res.json();
+    const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(body?.error?.message || "Assistant request failed.");
+      throw new Error(body?.error?.message || `Assistant request failed (${res.status}).`);
     }
 
     const data = body.data;

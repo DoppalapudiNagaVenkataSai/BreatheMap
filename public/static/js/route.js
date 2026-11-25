@@ -10,10 +10,16 @@ let selectedOrigin = null;
 let selectedDest = null;
 const routeMap = new RouteMap("route-map");
 
-document.addEventListener("DOMContentLoaded", () => {
+function bootRoutePage() {
   initRouteForm();
   applyQueryPrefill();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootRoutePage);
+} else {
+  bootRoutePage();
+}
 
 function initRouteForm() {
   const originInput = document.getElementById("route-origin-input");
