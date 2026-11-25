@@ -21,6 +21,9 @@ ignore = [
     "PLR0913", # allow arguments in endpoint handlers
     "PLR2004", # allow comparison constants where appropriate
     "B008", # allow Depends in FastAPI parameter defaults
+    "RUF002", # allow math symbols in docstrings
+    "PLR0911", # allow multiple return statements in level checks
+    "PLR0917", # allow geometric coordinate arguments
 ]
 
 [tool.ruff.lint.mccabe]

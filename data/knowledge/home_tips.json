@@ -1,0 +1,58 @@
+[
+  {
+    "id": "tip-windows-closed",
+    "title": "Keep windows closed during peak smog",
+    "text": "Keep exterior windows and balcony doors sealed during worst AQI hours to prevent ambient particulate entry.",
+    "applies_min_level": "L4",
+    "mechanism": "Physical barrier against outdoor ambient PM2.5 infiltration.",
+    "cost": "free"
+  },
+  {
+    "id": "tip-ventilate-clean",
+    "title": "Aerate briefly during the cleanest window",
+    "text": "Open windows for 10-15 minutes only during the day's cleanest 3-hour window to exchange stale air.",
+    "applies_min_level": "L2",
+    "mechanism": "Exchanges indoor CO2 and moisture while minimizing pollutant intake.",
+    "cost": "free"
+  },
+  {
+    "id": "tip-wet-mop",
+    "title": "Wet mop floors instead of dry sweeping",
+    "text": "Use a damp cloth or wet mop on hard floors. Dry sweeping resuspends settled settled fine particulate matter.",
+    "applies_min_level": "L3",
+    "mechanism": "Traps settled particles without re-aerosolizing dust.",
+    "cost": "free"
+  },
+  {
+    "id": "tip-no-incense",
+    "title": "Avoid burning incense or mosquito coils",
+    "text": "Burning incense, coils, or candles releases significant indoor PM2.5 and volatile organic compounds.",
+    "applies_min_level": "L3",
+    "mechanism": "Eliminates primary indoor combustion sources.",
+    "cost": "free"
+  },
+  {
+    "id": "tip-kitchen-exhaust",
+    "title": "Run kitchen exhaust hood during cooking",
+    "text": "Always operate exhaust ventilation while frying or sautéing to vent cooking emissions directly outside.",
+    "applies_min_level": "L2",
+    "mechanism": "Extracts oil droplet aerosols and combustion byproducts at the source.",
+    "cost": "free"
+  },
+  {
+    "id": "tip-diy-box-fan",
+    "title": "Consider a low-cost DIY box fan filter",
+    "text": "A standard box fan taped securely to a high-efficiency furnace filter provides effective indoor filtration.",
+    "applies_min_level": "L4",
+    "mechanism": "Recirculates room air across physical filter media.",
+    "cost": "low"
+  },
+  {
+    "id": "tip-door-isolation",
+    "title": "Isolate rooms when running air filtration",
+    "text": "Close interior bedroom doors to reduce the cubic volume your air purifier needs to circulate.",
+    "applies_min_level": "L4",
+    "mechanism": "Increases Clean Air Delivery Rate (CADR) per unit volume.",
+    "cost": "free"
+  }
+]
