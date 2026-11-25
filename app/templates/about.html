@@ -3,7 +3,7 @@
 {% block content %}
 <article class="about-page" aria-label="About BreatheMap and Methodology">
   <h1>About BreatheMap</h1>
-  <p class="lead">BreatheMap helps urban residents reduce how much air pollution they personally breathe in by deciding when to go out, how to travel, and which route to take.</p>
+  <p class="lead">BreatheMap helps urban residents and families reduce how much air pollution they personally breathe in by deciding when to go out, how to travel, and which route to take.</p>
 
   <section class="about-section">
     <h2>1. Personal Exposure vs AQI</h2>
@@ -12,9 +12,9 @@
 
   <section class="about-section">
     <h2>2. Inhaled Dose Formula</h2>
-    <p>The comparative PM2.5 dose (µg) is modeled across route segments:</p>
+    <p>The comparative PM2.5 dose (µg) is modelled across route segments:</p>
     <code>Dose = Σ C_i(t_i) × F_mode × F_road,i × V_mode × Δt_i</code>
-    <p>Where <code>V_mode</code> is ventilation rate, <code>F_mode</code> is transit microenvironment filtering, and <code>F_road</code> is proximity to heavy traffic corridors.</p>
+    <p>Where <code>V_mode</code> is ventilation rate (m³/h), <code>F_mode</code> is microenvironment filtering, and <code>F_road</code> is road proximity.</p>
   </section>
 
   <section class="about-section">
@@ -24,12 +24,23 @@
 
   <section class="about-section">
     <h2>4. Privacy and AI Transparency</h2>
-    <p>BreatheMap does not require user accounts or store personal identities. When using the AI Assistant, factual summaries are processed using Google Gemini on the free tier. Please do not share sensitive personal information.</p>
+    <p>BreatheMap is anonymous: no accounts, no cookies for tracking, and raw IP addresses are never stored (only daily HMAC hashes). Community reports expire automatically. When using the AI Assistant, messages are processed via the Google Gemini free tier (which Google may use to improve products) — please do not share personal details.</p>
   </section>
 
   <section class="about-section">
-    <h2>5. Not Medical Advice</h2>
-    <p>BreatheMap is a comparative decision tool, not a medical device. It does not diagnose, prescribe, or guarantee safety.</p>
+    <h2>5. Data Sources &amp; Attributions</h2>
+    <ul>
+      <li>Air quality &amp; weather: Open-Meteo / CAMS (CC BY 4.0)</li>
+      <li>Routing: openrouteservice.org &amp; FOSSGIS OSRM / OpenStreetMap contributors</li>
+      <li>Geocoding &amp; street lighting tags: Nominatim &amp; Overpass API / OpenStreetMap contributors</li>
+      <li>Map tiles: © OpenStreetMap contributors</li>
+      <li>AI explanations: Google Gemini (gemini-3.8-flash)</li>
+    </ul>
+  </section>
+
+  <section class="about-section">
+    <h2>6. Not Medical Advice</h2>
+    <p>BreatheMap is a comparative decision-support tool, not a medical device. It does not diagnose, prescribe, or provide medical advice. For health concerns, consult a doctor; in an emergency, call 112 (in India) or your local emergency number.</p>
   </section>
 </article>
 {% endblock %}

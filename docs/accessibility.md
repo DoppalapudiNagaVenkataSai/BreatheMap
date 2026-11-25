@@ -1,11 +1,15 @@
 # Accessibility Verification (WCAG 2.1 AA)
 
-## Static Checks (Automated in `tests/accessibility/test_pages.py`)
-- [x] Language attribute declared (`<html lang="en">`).
-- [x] Skip link (`<a href="#main" class="skip-link">Skip to main content</a>`) as first focusable element.
-- [x] Landmark elements present (`header`, `nav aria-label="Main"`, `main id="main"`, `footer`).
-- [x] Exactly one `<h1>` per page.
-- [x] Text alternative for 24-hour chart (interactive toggle switching between SVG chart and structured `<table>`).
-- [x] Accessible dialog for location selection with `aria-labelledby="dialog-title"`.
-- [x] Color contrast ratios verified for all 6 AQI levels (>= 4.5:1 text against backgrounds).
-- [x] No inline styles or script tags (strict CSP compliant).
+## Automated Checks
+- `tests/accessibility/test_pages.py` verifies on all 5 pages (`/`, `/route`, `/assistant`, `/watch`, `/about`):
+  - `<html lang="en">`
+  - Skip-to-main link (`<a href="#main" class="skip-link">`)
+  - `<main id="main">` landmark and `<nav aria-label="Main">`
+  - Exactly one `<h1>` per page
+  - Zero inline `<script>` or `<style>` blocks
+  - Interactive regions with explicit `role` and `aria-label` (`/route` map, `/watch` map & `<dialog>`, `/assistant` `role="log"` `aria-live="polite"`)
+
+## Keyboard & Screen Reader Design
+- All chips and filters are native `<button>` or `<select>` elements with visible focus rings.
+- Every map and chart has a text/table equivalent (hourly table toggle on `/`, route mode cards on `/route`, primary accessible list on `/watch`, structured reply + cards on `/assistant`).
+- Live regions announce status updates without re-reading the entire chat log (new nodes appended to `#assistant-chat-log`).
