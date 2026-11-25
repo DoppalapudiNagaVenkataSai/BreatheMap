@@ -19,7 +19,9 @@ def get_air_service(
     request: Request, settings: Settings = Depends(get_app_settings)
 ) -> tuple[AirService, bool]:
     """Construct AirService with appropriate live or demo provider."""
-    is_demo = request.headers.get("X-BreatheMap-Demo") == "true" or settings.DEMO_MODE == "force"
+    is_demo = (
+        request.headers.get("X-BreatheMap-Demo") in ("true", "1") or settings.DEMO_MODE == "force"
+    )
     store = get_store(request)
 
     if is_demo:

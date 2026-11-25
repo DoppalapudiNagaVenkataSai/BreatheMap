@@ -14,7 +14,7 @@ export const state = {
     try {
       localStorage.setItem(key, JSON.stringify(val));
     } catch (e) {
-      // safe fallback if storage is blocked
+      // resilient fallback if storage is blocked
     }
   },
 };

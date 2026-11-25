@@ -1,9 +1,16 @@
 """Deterministic Quick-answer templates built from structured card data (Section 8.14)."""
 
 from collections.abc import Callable
+from datetime import datetime
 from typing import Any
 
 from app.assistant.intents import Intent
+
+
+def _hhmm(val: Any) -> str:
+    if isinstance(val, datetime):
+        return val.strftime("%H:%M")
+    return str(val)[11:16]
 
 
 def _card_data(cards: list[dict[str, Any]], card_type: str) -> Any:
@@ -31,8 +38,8 @@ def _reply_best_time(cards: list[dict[str, Any]], caveats: list[str]) -> dict[st
     clean = win.get("cleanest")
     worst = win.get("worst")
     if clean:
-        c_start = clean["start_time"][11:16]
-        c_end = clean["end_time"][11:16]
+        c_start = _hhmm(clean["start_time"])
+        c_end = _hhmm(clean["end_time"])
         summary = (
             f"Cleanest 3-hour window is {c_start}-{c_end} (about {clean['avg_pm25']} µg/m³ PM2.5)."
         )
@@ -41,7 +48,7 @@ def _reply_best_time(cards: list[dict[str, Any]], caveats: list[str]) -> dict[st
     reasons: list[str] = []
     if worst:
         reasons.append(
-            f"Peak smog window: {worst['start_time'][11:16]}-{worst['end_time'][11:16]} "
+            f"Peak smog window: {_hhmm(worst['start_time'])}-{_hhmm(worst['end_time'])} "
             f"({worst['avg_pm25']} µg/m³)."
         )
     return {
@@ -60,7 +67,7 @@ def _reply_activity(cards: list[dict[str, Any]], caveats: list[str]) -> dict[str
     reasons = [str(adv["cautious_note"])] if adv.get("cautious_note") else []
     if clean:
         reasons.append(
-            f"Cleanest window: {clean['start_time'][11:16]}-{clean['end_time'][11:16]} "
+            f"Cleanest window: {_hhmm(clean['start_time'])}-{_hhmm(clean['end_time'])} "
             f"({clean['avg_pm25']} µg/m³ PM2.5)."
         )
     return {

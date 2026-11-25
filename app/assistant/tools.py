@@ -17,6 +17,12 @@ from app.services.route_service import RouteService
 DATA_KNOWLEDGE_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "knowledge"
 
 
+def _hhmm(val: Any) -> str:
+    if isinstance(val, datetime):
+        return val.strftime("%H:%M")
+    return str(val)[11:16]
+
+
 @lru_cache(maxsize=1)
 def _load_glossary() -> dict[str, str]:
     path = DATA_KNOWLEDGE_DIR / "glossary.json"
@@ -74,7 +80,7 @@ async def run_air_tool(
         if cleanest:
             bundle.add_fact(
                 "cleanest_window",
-                f"{cleanest['start_time'][11:16]}-{cleanest['end_time'][11:16]}",
+                f"{_hhmm(cleanest['start_time'])}-{_hhmm(cleanest['end_time'])}",
                 source=source_label,
             )
             bundle.add_fact(
@@ -86,7 +92,7 @@ async def run_air_tool(
         if worst:
             bundle.add_fact(
                 "worst_window",
-                f"{worst['start_time'][11:16]}-{worst['end_time'][11:16]}",
+                f"{_hhmm(worst['start_time'])}-{_hhmm(worst['end_time'])}",
                 source=source_label,
             )
             bundle.add_fact(

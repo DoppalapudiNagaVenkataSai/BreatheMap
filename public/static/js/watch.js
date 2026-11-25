@@ -97,6 +97,27 @@ function initWatchView() {
     });
   }
 
+  // Prefill from assistant ?category=&lat=&lon= without auto-posting
+  const urlParams = new URLSearchParams(window.location.search);
+  const preCat = urlParams.get("category");
+  const preLat = urlParams.get("lat");
+  const preLon = urlParams.get("lon");
+  if (preCat || (preLat && preLon)) {
+    const catSelect = document.getElementById("report-category");
+    if (catSelect && preCat) catSelect.value = preCat;
+    if (preLat && preLon && !Number.isNaN(Number(preLat)) && !Number.isNaN(Number(preLon))) {
+      pickedLocation = {
+        lat: Number(Number(preLat).toFixed(3)),
+        lon: Number(Number(preLon).toFixed(3)),
+      };
+      updateSelectedCoordsText();
+    }
+    if (panel && toggleBtn) {
+      panel.classList.remove("hidden");
+      toggleBtn.setAttribute("aria-expanded", "true");
+    }
+  }
+
   document.getElementById("filter-category")?.addEventListener("change", loadNearbyReports);
   document.getElementById("filter-hours")?.addEventListener("change", loadNearbyReports);
   document.getElementById("filter-radius")?.addEventListener("change", loadNearbyReports);

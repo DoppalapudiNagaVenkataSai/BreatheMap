@@ -403,6 +403,23 @@ function renderResults(data) {
     }
   }
 
+  // Wire "Explain this with AI" integration
+  const explainLink = document.getElementById("link-explain-ai");
+  if (explainLink) {
+    try {
+      sessionStorage.setItem(
+        "bm:route_explain_ctx",
+        JSON.stringify({
+          destination: data.destination,
+          departure_time: data.departure_time,
+        })
+      );
+      explainLink.setAttribute("href", "/assistant?explain_route=1");
+    } catch {
+      // Ignore unavailable sessionStorage
+    }
+  }
+
   // Explain with AI link
   if (explainLink) {
     const q = `Best way from ${data.origin.label} to ${data.destination.label}?`;
