@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="assistant-page" aria-label="AI Air Exposure Assistant">
+  <div class="assistant-header">
+    <h1>AI Air Assistant</h1>
+    <p class="lead">Ask about local air quality, cleanest hours, routes, indoor tips, or nearby community reports.</p>
+  </div>
+
+  <!-- Context Bar with Editable Chips -->
+  <div id="assistant-context-bar" class="context-chips-bar" role="region" aria-label="Active Conversation Context">
+    <button type="button" id="chip-ctx-loc" class="ctx-chip" title="Current location">Location: --</button>
+    <button type="button" id="chip-ctx-time" class="ctx-chip" title="Cycle departure/outing time">Time: Any</button>
+    <button type="button" id="chip-ctx-dur" class="ctx-chip" title="Cycle duration">Duration: Any</button>
+    <button type="button" id="chip-ctx-mode" class="ctx-chip" title="Cycle travel mode">Mode: All</button>
+    <button type="button" id="chip-ctx-act" class="ctx-chip" title="Cycle activity">Activity: None</button>
+    <button type="button" id="chip-ctx-sens" class="ctx-chip" title="Toggle cautious mode">Cautious: Off</button>
+  </div>
+
+  <!-- Quota / AI Status Banner -->
+  <div id="assistant-quota-banner" class="watch-banner hidden" role="status" aria-live="polite">
+    <p id="assistant-quota-text">AI explanations are paused for today; you'll still get Quick answers from the same data.</p>
+  </div>
+
+  <!-- Starter Chips -->
+  <div id="assistant-starters" class="starter-chips" aria-label="Starter questions">
+    <button type="button" class="starter-chip" data-prompt="Is it OK to jog at 6 PM for 40 minutes?">Is it OK to jog at 6 PM for 40 minutes?</button>
+    <button type="button" class="starter-chip" data-prompt="I'm going to New Delhi Railway Station at 10 PM — best way?">Going to New Delhi Railway Station at 10 PM — best way?</button>
+    <button type="button" class="starter-chip" data-prompt="When should I open my windows today?">When should I open my windows today?</button>
+    <button type="button" class="starter-chip" data-prompt="Any smoke reported near me?">Any smoke reported near me?</button>
+    <button type="button" class="starter-chip" data-prompt="What does NAQI mean?">What does NAQI mean?</button>
+  </div>
+
+  <!-- Chat Log -->
+  <div id="assistant-chat-log" class="chat-log" role="log" aria-live="polite" aria-label="Assistant conversation">
+    <div class="chat-msg chat-msg-assistant">
+      <p class="msg-summary">Ask me anything about air quality, when to go out, which route has lower estimated exposure, or indoor air tips.</p>
+    </div>
+  </div>
+
+  <!-- Status Announcement -->
+  <p id="assistant-status" class="sr-only" aria-live="polite"></p>
+
+  <!-- Input Form -->
+  <form id="assistant-form" class="assistant-form" novalidate>
+    <label for="assistant-input">Ask about air quality, routes, or indoor tips</label>
+    <textarea
+      id="assistant-input"
+      name="message"
+      rows="2"
+      maxlength="500"
+      required
+      aria-describedby="assistant-char-counter assistant-privacy-note"
+      placeholder="e.g. Is it OK to jog at 6 PM for 40 minutes?"
+    ></textarea>
+    <div class="field-meta-row">
+      <span id="assistant-char-counter" class="char-counter">0 / 500</span>
+      <button type="submit" id="btn-assistant-send" class="btn-primary">Send</button>
+    </div>
+  </form>
+
+  <p id="assistant-privacy-note" class="assistant-footer-note">
+    AI explanations use Google Gemini (free tier). Please don't share personal details. Not medical advice.
+  </p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/vendor/leaflet/leaflet.js?v={{ version | default('0.1.0') }}" defer></script>
+<script type="module" src="/static/js/assistant.js?v={{ version | default('0.1.0') }}" defer></script>
+{% endblock %}

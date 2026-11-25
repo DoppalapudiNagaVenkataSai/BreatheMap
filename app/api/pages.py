@@ -47,16 +47,12 @@ async def route_page(request: Request) -> HTMLResponse:
 
 @router.get("/assistant", response_class=HTMLResponse)
 async def assistant_page(request: Request) -> HTMLResponse:
-    """Render AI Assistant stub page."""
+    """Render AI Air Assistant page."""
     return templates.TemplateResponse(
         request=request,
-        name="stub.html",
+        name="assistant.html",
         context={
-            "title": "AI Air Assistant",
-            "page_title": "AI Air Assistant",
-            "description": (
-                "Natural language decision support grounded in deterministic environmental data."
-            ),
+            "title": "AI Air Assistant — BreatheMap",
             "active_page": "assistant",
         },
     )
