@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="watch-page" aria-label="BreatheWatch Community Pollution Reports">
+  <div class="watch-header">
+    <div>
+      <h1>BreatheWatch — Community Reports</h1>
+      <p class="lead">Local pollution observations shared by people nearby. All entries are unverified community reports.</p>
+    </div>
+    <button type="button" id="btn-toggle-report-form" class="btn-primary" aria-expanded="false" aria-controls="watch-report-panel">
+      Report pollution
+    </button>
+  </div>
+
+  <!-- Status / Feedback Banner -->
+  <div id="watch-status-banner" class="watch-banner hidden" role="status" aria-live="polite">
+    <p id="watch-status-text"></p>
+    <button type="button" id="btn-duplicate-confirm" class="btn-secondary hidden">I see this too</button>
+  </div>
+
+  <div id="watch-error-banner" class="error-banner hidden" role="alert">
+    <p id="watch-error-text"></p>
+  </div>
+
+  <!-- Report Submission Panel -->
+  <section id="watch-report-panel" class="watch-form-panel hidden" aria-label="Report Pollution Form">
+    <h2>Report Local Pollution</h2>
+    <form id="watch-report-form" novalidate>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="report-category">Category <span class="req">*</span></label>
+          <select id="report-category" name="category" required>
+            <option value="smoke">Smoke</option>
+            <option value="open_burning">Open burning</option>
+            <option value="construction_dust">Construction dust</option>
+            <option value="road_dust">Road dust</option>
+            <option value="vehicle_emissions">Vehicle emissions</option>
+            <option value="industrial_emissions">Industrial emissions</option>
+            <option value="odour">Odour</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="report-description">What do you see? <span class="req">*</span></label>
+        <textarea
+          id="report-description"
+          name="description"
+          rows="3"
+          minlength="10"
+          maxlength="280"
+          required
+          aria-describedby="report-desc-hint report-desc-counter"
+          placeholder="e.g. Thick smoke from roadside waste burning near the bus stop."
+        ></textarea>
+        <div class="field-meta-row">
+          <span id="report-desc-hint" class="field-hint">Describe what you see. Don't include names, phone numbers or personal details.</span>
+          <span id="report-desc-counter" class="char-counter">0 / 280</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <span class="field-label">Report Location <span class="req">*</span></span>
+        <div class="location-picker-actions">
+          <button type="button" id="btn-report-use-loc" class="btn-secondary">Use my location</button>
+          <button type="button" id="btn-report-pick-map" class="btn-secondary">Pick on map</button>
+        </div>
+        <div class="input-with-btn watch-search-row">
+          <label for="report-loc-search" class="sr-only">Search place for report location</label>
+          <input type="text" id="report-loc-search" placeholder="Search a landmark or area…" autocomplete="off">
+          <button type="button" id="btn-report-loc-search" class="btn-secondary">Search</button>
+        </div>
+        <ul id="report-loc-results" class="results-list hidden" role="listbox" aria-label="Report location search results"></ul>
+        <p id="report-selected-coords" class="field-hint">Selected coordinates: using current location</p>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" id="btn-review-report" class="btn-primary">Review</button>
+        <button type="button" id="btn-cancel-report" class="btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Filters -->
+  <form id="watch-filter-form" class="watch-filters" aria-label="Filter Community Reports">
+    <div class="filter-group">
+      <label for="filter-category">Category</label>
+      <select id="filter-category" name="category">
+        <option value="">All categories</option>
+        <option value="smoke">Smoke</option>
+        <option value="open_burning">Open burning</option>
+        <option value="construction_dust">Construction dust</option>
+        <option value="road_dust">Road dust</option>
+        <option value="vehicle_emissions">Vehicle emissions</option>
+        <option value="industrial_emissions">Industrial emissions</option>
+        <option value="odour">Odour</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="filter-hours">Time</label>
+      <select id="filter-hours" name="hours">
+        <option value="6">Last 6 h</option>
+        <option value="24" selected>Last 24 h</option>
+        <option value="48">Last 48 h</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="filter-radius">Radius</label>
+      <select id="filter-radius" name="radius_km">
+        <option value="1">1 km</option>
+        <option value="3" selected>3 km</option>
+        <option value="5">5 km</option>
+        <option value="10">10 km</option>
+      </select>
+    </div>
+  </form>
+
+  <!-- Primary Accessible List + Secondary Map -->
+  <div class="results-split watch-split">
+    <div class="cards-column">
+      <h2 id="watch-list-heading">Nearby Reports (<span id="watch-count">0</span>)</h2>
+      <p id="watch-warning-note" class="field-hint hidden"></p>
+      <ul id="watch-reports-list" class="watch-reports-list" aria-live="polite">
+        <li class="empty-state">Loading community reports…</li>
+      </ul>
+    </div>
+
+    <div class="map-column">
+      <div id="watch-map" class="map-box" role="region" aria-label="Community reports map"></div>
+      <p class="map-text-note">Every report on the map is also listed in full on the left.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Confirmation Dialog -->
+<dialog id="watch-confirm-dialog" class="confirm-dialog" aria-labelledby="confirm-dialog-title">
+  <h2 id="confirm-dialog-title">Confirm Public Report</h2>
+  <p id="confirm-dialog-message"></p>
+  <dl class="confirm-summary">
+    <dt>Category</dt>
+    <dd id="confirm-summary-category"></dd>
+    <dt>Description</dt>
+    <dd id="confirm-summary-desc"></dd>
+    <dt>Location</dt>
+    <dd id="confirm-summary-loc"></dd>
+  </dl>
+  <div class="form-actions">
+    <button type="button" id="btn-confirm-post" class="btn-primary">Post publicly</button>
+    <button type="button" id="btn-confirm-cancel" class="btn-secondary">Cancel</button>
+  </div>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/vendor/leaflet/leaflet.js?v={{ version | default('0.1.0') }}" defer></script>
+<script type="module" src="/static/js/watch.js?v={{ version | default('0.1.0') }}" defer></script>
+{% endblock %}

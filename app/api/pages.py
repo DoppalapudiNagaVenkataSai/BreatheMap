@@ -64,14 +64,12 @@ async def assistant_page(request: Request) -> HTMLResponse:
 
 @router.get("/watch", response_class=HTMLResponse)
 async def watch_page(request: Request) -> HTMLResponse:
-    """Render BreatheWatch stub page."""
+    """Render BreatheWatch community pollution reports page."""
     return templates.TemplateResponse(
         request=request,
-        name="stub.html",
+        name="watch.html",
         context={
             "title": "BreatheWatch — Community Reports",
-            "page_title": "BreatheWatch",
-            "description": "Discover and share local pollution observations with your community.",
             "active_page": "watch",
         },
     )

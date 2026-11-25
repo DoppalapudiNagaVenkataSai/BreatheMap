@@ -49,3 +49,8 @@ async def test_page_accessibility_and_landmarks(client: AsyncClient, path: str) 
     assert parser.h1_count == 1, f"Expected exactly one <h1> on {path}, got {parser.h1_count}"
     if path == "/route":
         assert 'role="region"' in html and 'aria-label="Route comparison map"' in html
+    if path == "/watch":
+        assert 'role="region"' in html and 'aria-label="Community reports map"' in html
+        assert 'id="watch-confirm-dialog"' in html
+        assert "watch-reports-list" in html
+        assert "<script>" not in html and "<style>" not in html

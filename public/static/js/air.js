@@ -121,4 +121,21 @@ async function loadAirData() {
   } catch (e) {
     if (provNote) provNote.textContent = "Data temporarily unavailable";
   }
+
+  loadNearbyReportCount(loc);
+}
+
+async function loadNearbyReportCount(loc) {
+  const link = document.getElementById("watch-shortcut-link");
+  if (!link) return;
+  try {
+    const reports = await fetchApi(
+      `/api/v1/reports/nearby?lat=${loc.lat}&lon=${loc.lon}&radius_km=3&hours=24`
+    );
+    const count = Array.isArray(reports) ? reports.length : 0;
+    const noun = count === 1 ? "community report" : "community reports";
+    link.textContent = `${count} ${noun} nearby →`;
+  } catch (e) {
+    link.textContent = "View Community Reports →";
+  }
 }
