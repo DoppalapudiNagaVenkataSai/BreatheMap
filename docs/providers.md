@@ -31,7 +31,9 @@
   - Attribution: *Street lighting tags: OpenStreetMap contributors*.
 - **OpenStreetMap Tiles & Leaflet**: Map visualizer (`leaflet` 1.9.4, BSD-2-Clause, vendored locally).
   - Attribution: *© OpenStreetMap contributors*.
-- **Google Gemini API**: Plain language AI explanations (`gemini-3.8-flash` via `google-genai` SDK).
+- **Google Gemini API**: Plain language AI explanations (`gemini-3.8-flash` via `google-genai >= 0.7.0`, verified on `3.6.1`).
+  - Async call: `client.aio.models.generate_content(...)` with `types.GenerateContentConfig(system_instruction=..., response_mime_type="application/json", response_schema=AssistantDraft, thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.LOW), max_output_tokens=1024)`.
+  - Timeout: 20 s via `asyncio.wait_for`, single attempt (no retries).
   - Attribution: *AI explanations: Google Gemini*.
 - **Google Cloud Firestore**: Production persistence for community reports, votes, L2 cache, and rate-limit counters (`google-cloud-firestore >= 2.19.0`).
   - Client: `firestore.AsyncClient(project=..., credentials=...)` initialized from `FIRESTORE_CREDENTIALS_B64` via `google.oauth2.service_account.Credentials.from_service_account_info`.
