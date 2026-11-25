@@ -254,3 +254,61 @@ async def test_prompt_injection_in_report_isolated_and_grounded() -> None:
     assert res["answer_mode"] == "ai"
     assert fake.call_count == 1
     assert "USER_REPORTS: <<<" in (fake.last_user_content or "")
+
+
+@pytest.mark.asyncio
+async def test_all_remaining_intents_and_sensitive_chip() -> None:
+    fake = FakeGeminiClient()
+    svc = _make_service(gemini_client=fake, gemini_enabled=False)
+
+    # BEST_TIME
+    r_best, _ = await svc.chat(
+        message="When's the cleanest time to go out today?",
+        context={"lat": 28.6315, "lon": 77.2167},
+        reporter_hash="u1",
+        is_demo=True,
+        now=NOW,
+    )
+    assert any(c["type"] == "time_window" for c in r_best["cards"])
+
+    # ACTIVITY_ADVICE with sensitive hint -> returns enable_sensitive chip
+    r_act, _ = await svc.chat(
+        message="Can my child jog at 6 PM for 30 min?",
+        context={"lat": 28.6315, "lon": 77.2167},
+        reporter_hash="u1",
+        is_demo=True,
+        now=NOW,
+    )
+    assert any(c["type"] == "activity_advice" for c in r_act["cards"])
+    assert any(ch.get("action") == "enable_sensitive" for ch in r_act["chips"])
+
+    # HOME_TIPS
+    r_home, _ = await svc.chat(
+        message="How do I keep the air cleaner at home?",
+        context={"lat": 28.6315, "lon": 77.2167},
+        reporter_hash="u1",
+        is_demo=True,
+        now=NOW,
+    )
+    assert any(c["type"] == "home_tips" for c in r_home["cards"])
+
+    # EXPLAIN
+    r_exp, _ = await svc.chat(
+        message="What is PM2.5?",
+        context={"lat": 28.6315, "lon": 77.2167},
+        reporter_hash="u1",
+        is_demo=True,
+        now=NOW,
+    )
+    assert any(c["type"] == "glossary" for c in r_exp["cards"])
+
+    # REPORT_HELP
+    r_rep, _ = await svc.chat(
+        message="I see garbage burning, how do I report it?",
+        context={"lat": 28.6315, "lon": 77.2167},
+        reporter_hash="u1",
+        is_demo=True,
+        now=NOW,
+    )
+    assert any(ch.get("action") == "open_watch" for ch in r_rep["chips"])
+    assert fake.call_count == 0

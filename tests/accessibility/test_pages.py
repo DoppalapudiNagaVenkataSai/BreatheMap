@@ -54,3 +54,8 @@ async def test_page_accessibility_and_landmarks(client: AsyncClient, path: str) 
         assert 'id="watch-confirm-dialog"' in html
         assert "watch-reports-list" in html
         assert "<script>" not in html and "<style>" not in html
+    if path == "/assistant":
+        assert 'role="log"' in html and 'aria-live="polite"' in html
+        assert 'id="assistant-input"' in html
+        assert "Not medical advice." in html
+        assert "<script>" not in html and "<style>" not in html
