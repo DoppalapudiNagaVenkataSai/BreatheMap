@@ -104,3 +104,42 @@ MIN_ROUTE_DISTANCE_M = 100.0
 MAX_WALK_DURATION_MIN = 60.0
 MAX_WALK_DISTANCE_KM = 5.0
 MAX_CYCLE_DISTANCE_KM = 20.0
+
+# --- BreatheWatch Community Reports (Section 8.13) ---
+REPORT_CATEGORIES: tuple[str, ...] = (
+    "smoke",
+    "open_burning",
+    "construction_dust",
+    "road_dust",
+    "vehicle_emissions",
+    "industrial_emissions",
+    "odour",
+    "other",
+)
+
+REPORT_TTL_HOURS: dict[str, int] = {
+    "smoke": 12,
+    "open_burning": 12,
+    "odour": 12,
+    "vehicle_emissions": 6,
+    "construction_dust": 24,
+    "road_dust": 24,
+    "industrial_emissions": 48,
+    "other": 24,
+}
+
+REPORT_DESC_MIN_LEN = 10
+REPORT_DESC_MAX_LEN = 280
+REPORT_MAX_USER_DISTANCE_KM = 50.0
+REPORT_DUPLICATE_RADIUS_M = 300.0
+REPORT_DUPLICATE_WINDOW_HOURS = 2
+REPORT_ROUTE_RADIUS_M = 200.0
+REPORT_FLAG_HIDE_THRESHOLD = 3
+REPORT_CREATE_PER_HOUR = 3
+REPORT_CREATE_PER_DAY = 10
+REPORT_VOTE_PER_DAY = 20
+REPORT_DEFAULT_RADIUS_KM = 3.0
+REPORT_MAX_RADIUS_KM = 10.0
+REPORT_DEFAULT_HOURS = 24
+REPORT_MAX_RESULTS = 50
+REPORT_STATUS_LABEL = "Unverified community report"

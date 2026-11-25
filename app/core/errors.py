@@ -20,6 +20,11 @@ class ValidationAppError(AppError):
         super().__init__(code="VALIDATION_ERROR", message=message, status_code=422)
 
 
+class OutOfRangeError(AppError):
+    def __init__(self, message: str) -> None:
+        super().__init__(code="OUT_OF_RANGE", message=message, status_code=422)
+
+
 class NotFoundError(AppError):
     def __init__(self, message: str = "Resource not found") -> None:
         super().__init__(code="NOT_FOUND", message=message, status_code=404)

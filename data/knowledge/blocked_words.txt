@@ -1,0 +1,11 @@
+# Small neutral list of blocked words for BreatheWatch report moderation
+spam
+scam
+viagra
+casino
+crypto
+lottery
+free-money
+click-here
+bitly
+tinyurl

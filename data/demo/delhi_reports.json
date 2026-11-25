@@ -1,0 +1,72 @@
+[
+  {
+    "id": "demo-rep-1",
+    "category": "vehicle_emissions",
+    "description": "Sample data: Heavy diesel truck idling near Outer Circle traffic signal.",
+    "lat": 28.632,
+    "lon": 77.219,
+    "age_minutes": 35,
+    "confirmations": 4,
+    "is_demo": true
+  },
+  {
+    "id": "demo-rep-2",
+    "category": "road_dust",
+    "description": "Sample data: Fine road dust kicked up along Janpath kerbside.",
+    "lat": 28.625,
+    "lon": 77.219,
+    "age_minutes": 80,
+    "confirmations": 2,
+    "is_demo": true
+  },
+  {
+    "id": "demo-rep-3",
+    "category": "construction_dust",
+    "description": "Sample data: Uncovered sand pile and excavation work near ITO junction.",
+    "lat": 28.628,
+    "lon": 77.241,
+    "age_minutes": 140,
+    "confirmations": 5,
+    "is_demo": true
+  },
+  {
+    "id": "demo-rep-4",
+    "category": "smoke",
+    "description": "Sample data: Wood smoke drifting across India Gate lawns this morning.",
+    "lat": 28.613,
+    "lon": 77.229,
+    "age_minutes": 195,
+    "confirmations": 3,
+    "is_demo": true
+  },
+  {
+    "id": "demo-rep-5",
+    "category": "open_burning",
+    "description": "Sample data: Dry leaves and roadside waste burning near Paharganj lane.",
+    "lat": 28.642,
+    "lon": 77.214,
+    "age_minutes": 260,
+    "confirmations": 6,
+    "is_demo": true
+  },
+  {
+    "id": "demo-rep-6",
+    "category": "odour",
+    "description": "Sample data: Strong chemical solvent smell reported near Anand Vihar terminal.",
+    "lat": 28.647,
+    "lon": 77.315,
+    "age_minutes": 310,
+    "confirmations": 1,
+    "is_demo": true
+  },
+  {
+    "id": "demo-rep-7",
+    "category": "industrial_emissions",
+    "description": "Sample data: Dark chimney plume visible from Okhla industrial phase 2.",
+    "lat": 28.536,
+    "lon": 77.273,
+    "age_minutes": 420,
+    "confirmations": 2,
+    "is_demo": true
+  }
+]
