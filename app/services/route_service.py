@@ -17,7 +17,7 @@ from app.constants import (
     V_MODE_WALK,
 )
 from app.core.cache import get_or_set, make_cache_key
-from app.core.errors import ProviderUnavailableError, ValidationAppError
+from app.core.errors import ProviderUnavailableError, StorageUnavailableError, ValidationAppError
 from app.domain.exposure import (
     AirPoint,
     Segment,
@@ -47,6 +47,7 @@ from app.providers.base import (
     RoutingProvider,
     WeatherProvider,
 )
+from app.services.report_service import _format_public_report, _parse_dt, load_demo_reports
 from app.storage.base import CacheStore, ReportStore
 
 MODE_PROFILES: dict[Mode, tuple[float, float]] = {
@@ -244,17 +245,45 @@ class RouteService:
         ways = await self.lighting_provider.get_lighting_ways(coords)
         return {"ways": ways}
 
-    async def _find_reports_along_route(
-        self, coords: list[tuple[float, float]]
+    async def _load_route_report_candidates(
+        self,
+        coords: list[tuple[float, float]],
+        is_demo: bool,
+        ref_now: datetime,
+        warnings: list[str] | None,
     ) -> list[dict[str, Any]]:
-        if not self.report_store or not coords:
+        if is_demo:
+            return load_demo_reports(now=ref_now)
+        if not self.report_store:
             return []
         mid = line_midpoint(coords)
         gh = geohash_encode(mid[0], mid[1], precision=5)
         buckets = [gh, *geohash_neighbors(gh)]
-        candidates = await self.report_store.list_nearby(buckets, max_results=50)
+        try:
+            return await self.report_store.list_nearby(buckets, max_results=50)
+        except StorageUnavailableError:
+            if warnings is not None:
+                warnings.append("Community reports along route are temporarily unavailable.")
+            return []
+
+    async def _find_reports_along_route(
+        self,
+        coords: list[tuple[float, float]],
+        is_demo: bool = False,
+        now: datetime | None = None,
+        warnings: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        if not coords:
+            return []
+        ref_now = now or datetime.now(UTC)
+        candidates = await self._load_route_report_candidates(coords, is_demo, ref_now, warnings)
         matched: list[dict[str, Any]] = []
         for rep in candidates:
+            if rep.get("status") != "published":
+                continue
+            expires_at = _parse_dt(rep.get("expires_at"))
+            if expires_at is not None and expires_at <= ref_now:
+                continue
             rlat, rlon = rep.get("lat"), rep.get("lon")
             if rlat is None or rlon is None:
                 continue
@@ -268,7 +297,7 @@ class RouteService:
                     coords[i + 1][1],
                 )
                 if d <= 200.0:
-                    matched.append(rep)
+                    matched.append(_format_public_report(rep))
                     break
         return matched
 
@@ -482,7 +511,9 @@ class RouteService:
             ),
             [],
         )
-        reports = await self._find_reports_along_route(first_coords)
+        reports = await self._find_reports_along_route(
+            first_coords, is_demo=is_demo, now=ref_now, warnings=global_warnings
+        )
         best_opt = min(available_ranked, key=lambda o: o.dose_ug) if available_ranked else None
         fastest_opt = (
             min(available_ranked, key=lambda o: o.duration_min) if available_ranked else None
