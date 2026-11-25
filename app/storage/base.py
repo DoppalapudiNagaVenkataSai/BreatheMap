@@ -25,6 +25,12 @@ class ReportStore(Protocol):
         """Update report fields."""
         ...
 
+    async def increment_report_field(
+        self, report_id: str, field: str, amount: int = 1
+    ) -> int | None:
+        """Atomically increment an integer field on a report and return new value."""
+        ...
+
 
 @runtime_checkable
 class VoteStore(Protocol):
@@ -63,3 +69,10 @@ class CounterStore(Protocol):
     async def get_count(self, key: str) -> int:
         """Get current counter value."""
         ...
+
+
+@runtime_checkable
+class StoreProtocol(ReportStore, VoteStore, CacheStore, CounterStore, Protocol):
+    """Unified storage protocol combining Report, Vote, Cache, and Counter stores."""
+
+    ...

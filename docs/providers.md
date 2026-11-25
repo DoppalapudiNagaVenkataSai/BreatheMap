@@ -33,3 +33,8 @@
   - Attribution: *© OpenStreetMap contributors*.
 - **Google Gemini API**: Plain language AI explanations (`gemini-3.8-flash` via `google-genai` SDK).
   - Attribution: *AI explanations: Google Gemini*.
+- **Google Cloud Firestore**: Production persistence for community reports, votes, L2 cache, and rate-limit counters (`google-cloud-firestore >= 2.19.0`).
+  - Client: `firestore.AsyncClient(project=..., credentials=...)` initialized from `FIRESTORE_CREDENTIALS_B64` via `google.oauth2.service_account.Credentials.from_service_account_info`.
+  - Queries: Uses `FieldFilter` keyword argument (`collection.where(filter=FieldFilter("geohash5", "in", buckets))`) rather than deprecated positional `where()` arguments; limits `in` queries to 9 geohash5 cells and filters `status` / `expires_at` in Python to avoid composite index requirements.
+  - Counters: Uses `firestore.Increment(n)` for atomic updates on report `confirmations`/`flags` and `counters` documents.
+  - Security: Server-only access via Cloud Datastore User service account; `firestore.rules` denies all client reads and writes.

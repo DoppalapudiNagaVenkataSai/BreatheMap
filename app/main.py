@@ -12,7 +12,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import air, geo, health, pages, routes
+from app.api import admin, air, geo, health, pages, reports, routes
 from app.config import get_settings
 from app.constants import (
     APP_NAME,
@@ -28,7 +28,7 @@ from app.core.errors import (
 )
 from app.core.logging import RequestIDMiddleware, setup_logging
 from app.core.security import SecurityHeadersMiddleware
-from app.storage.memory_store import MemoryStore
+from app.dependencies import create_store
 
 
 @asynccontextmanager
@@ -37,8 +37,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     settings = get_settings()
     setup_logging(settings.LOG_LEVEL)
 
-    # Initialize shared memory store
-    app.state.store = MemoryStore()
+    # Initialize single shared store per process
+    app.state.store = create_store(settings)
 
     # Shared async HTTP client
     transport = httpx.AsyncHTTPTransport(retries=1)
@@ -50,7 +50,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         yield
 
     # Teardown
-    app.state.store.clear()
+    clear_fn = getattr(app.state.store, "clear", None)
+    if callable(clear_fn):
+        clear_fn()
+    close_fn = getattr(app.state.store, "close", None)
+    if callable(close_fn):
+        res = close_fn()
+        if hasattr(res, "__await__"):
+            await res
 
 
 async def body_size_limit_middleware(
@@ -105,6 +112,8 @@ def create_app() -> FastAPI:
     app.include_router(geo.router)
     app.include_router(air.router)
     app.include_router(routes.router)
+    app.include_router(reports.router)
+    app.include_router(admin.router)
     app.include_router(pages.router)
 
     return app

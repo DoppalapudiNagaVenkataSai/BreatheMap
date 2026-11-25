@@ -39,6 +39,17 @@ class MemoryStore:
             return True
         return False
 
+    async def increment_report_field(
+        self, report_id: str, field: str, amount: int = 1
+    ) -> int | None:
+        """Atomically increment an integer field on a report and return new value."""
+        if report_id not in self.reports:
+            return None
+        current = int(self.reports[report_id].get(field, 0))
+        new_val = current + amount
+        self.reports[report_id][field] = new_val
+        return new_val
+
     # VoteStore
     async def add_vote(self, report_id: str, vote_type: str, reporter_hash: str) -> bool:
         vote_key = f"{report_id}:{vote_type}:{reporter_hash}"
