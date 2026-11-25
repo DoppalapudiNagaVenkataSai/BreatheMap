@@ -12,6 +12,7 @@ from app.providers.base import GeocodeProvider
 
 NOMINATIM_SEARCH_URL = "https://nominatim.openstreetmap.org/search"
 NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
+OPEN_METEO_GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
 
 
 class NominatimAdapter(GeocodeProvider):
@@ -29,6 +30,31 @@ class NominatimAdapter(GeocodeProvider):
                 await asyncio.sleep(1.0 - elapsed)
             self._last_call_time = time.monotonic()
 
+    async def _fallback_open_meteo_search(self, query: str) -> list[dict[str, Any]]:
+        """Fallback to Open-Meteo Geocoding API if Nominatim blocks/rate-limits."""
+        res = await request_with_retry(
+            self.client,
+            "GET",
+            OPEN_METEO_GEOCODE_URL,
+            params={"name": query, "count": 5, "language": "en", "format": "json"},
+        )
+        if res.status_code >= 400:
+            raise ProviderUnavailableError(f"Geocoding fallback failed ({res.status_code})")
+        payload = res.json()
+        results: list[dict[str, Any]] = []
+        for item in payload.get("results", []):
+            parts = [item.get("name"), item.get("admin1"), item.get("country")]
+            label = ", ".join(str(p) for p in parts if p)
+            results.append(
+                {
+                    "label": label or query,
+                    "lat": float(item["latitude"]),
+                    "lon": float(item["longitude"]),
+                    "country_code": str(item.get("country_code", "in")).lower(),
+                }
+            )
+        return results
+
     async def search(self, query: str) -> list[dict[str, Any]]:
         await self._rate_limit()
         params = {
@@ -37,10 +63,14 @@ class NominatimAdapter(GeocodeProvider):
             "limit": 5,
             "addressdetails": 1,
         }
-        res = await request_with_retry(self.client, "GET", NOMINATIM_SEARCH_URL, params=params)
-        if res.status_code >= 400:
-            raise ProviderUnavailableError(f"Nominatim search failed ({res.status_code})")
-        data = res.json()
+        try:
+            res = await request_with_retry(self.client, "GET", NOMINATIM_SEARCH_URL, params=params)
+            if res.status_code >= 400:
+                return await self._fallback_open_meteo_search(query)
+            data = res.json()
+        except ProviderUnavailableError:
+            return await self._fallback_open_meteo_search(query)
+
         results: list[dict[str, Any]] = []
         for item in data:
             addr = item.get("address", {})

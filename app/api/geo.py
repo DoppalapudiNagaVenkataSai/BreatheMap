@@ -1,5 +1,6 @@
 """Geocoding, place search, and reverse geocoding endpoints."""
 
+import re
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -10,6 +11,7 @@ from app.providers.demo import DemoProvider
 from app.providers.nominatim import NominatimAdapter
 
 router = APIRouter(prefix="/api/v1", tags=["geo"])
+_COORD_RE = re.compile(r"^\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)\s*$")
 
 
 def get_geo_provider(request: Request, settings: Settings = Depends(get_app_settings)) -> Any:
@@ -26,7 +28,22 @@ async def geocode_query(
     q: str = Query(..., min_length=2, max_length=100),
     geo_provider: Any = Depends(get_geo_provider),
 ) -> dict[str, Any]:
-    """Search forward geocode locations."""
+    """Search forward geocode locations (or parse direct 'lat, lon' coordinates)."""
+    coord_match = _COORD_RE.match(q)
+    if coord_match:
+        lat = float(coord_match.group(1))
+        lon = float(coord_match.group(2))
+        if -90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0:
+            return {
+                "data": [
+                    {
+                        "label": f"{lat:.4f}, {lon:.4f}",
+                        "lat": lat,
+                        "lon": lon,
+                        "country_code": "in",
+                    }
+                ]
+            }
     results = await geo_provider.search(q)
     return {"data": results}
 

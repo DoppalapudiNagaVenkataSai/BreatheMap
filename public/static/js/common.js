@@ -121,6 +121,21 @@ function initLocationBar() {
     const doSearch = async () => {
       const q = searchInput.value.trim();
       if (!q) return;
+      const coordMatch = /^\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)\s*$/.exec(q);
+      if (coordMatch) {
+        const lat = parseFloat(coordMatch[1]);
+        const lon = parseFloat(coordMatch[2]);
+        if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+          const newLoc = { label: `${lat.toFixed(4)}, ${lon.toFixed(4)}`, lat, lon };
+          state.set(KEYS.LOCATION, newLoc);
+          state.set(KEYS.DEMO, false);
+          updateLocationLabel(newLoc.label);
+          updateDemoBanner();
+          dialog.close();
+          emitChange();
+          return;
+        }
+      }
       resultsList.textContent = "Loading results…";
       try {
         const results = await fetchApi(`/api/v1/geocode?q=${encodeURIComponent(q)}`);
