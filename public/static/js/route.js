@@ -410,7 +410,6 @@ function renderResults(data) {
   }
 
   // Wire "Explain this with AI" integration
-  const explainLink = document.getElementById("link-explain-ai");
   if (explainLink) {
     try {
       sessionStorage.setItem(
@@ -422,14 +421,9 @@ function renderResults(data) {
       );
       explainLink.setAttribute("href", "/assistant?explain_route=1");
     } catch {
-      // Ignore unavailable sessionStorage
+      const q = `Best way from ${data.origin.label} to ${data.destination.label}?`;
+      explainLink.href = `/assistant?q=${encodeURIComponent(q)}`;
     }
-  }
-
-  // Explain with AI link
-  if (explainLink) {
-    const q = `Best way from ${data.origin.label} to ${data.destination.label}?`;
-    explainLink.href = `/assistant?q=${encodeURIComponent(q)}`;
   }
 
   if (resultsHeading) {
