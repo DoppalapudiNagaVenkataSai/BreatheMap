@@ -5,13 +5,16 @@ import re
 from app.assistant.gemini_client import AssistantDraft
 
 _NUMBER_RE = re.compile(r"\d+(?:\.\d+)?")
+_TOKEN_NUMBER_RE = re.compile(
+    r"\b(?:PM\s*2\.?5|PM\s*10|NO2|SO2|O3|CO2|K?N95|FFP2)\b", re.IGNORECASE
+)
 _URL_RE = re.compile(r"(https?://\S+|www\.\S+)", re.IGNORECASE)
 _BANNED_RE = re.compile(r"\b(safe|safest|guarantee\w*|diagnos\w*|prescri\w*|cure\w*)\b", re.I)
 
-MAX_TOTAL_WORDS = 180
+MAX_TOTAL_WORDS = 260
 MAX_REASONS = 4
 MAX_CAVEATS = 3
-SMALL_ALLOWED_INT_MAX = 5
+SMALL_ALLOWED_INT_MAX = 12
 
 
 def _is_number_grounded(num_val: float, allowed_numbers: set[float]) -> bool:
@@ -50,7 +53,8 @@ def validate_draft(
         if fid not in valid_fact_ids:
             return False, "validator_invalid_fact_id"
 
-    for match in _NUMBER_RE.findall(combined):
+    sanitized_for_nums = _TOKEN_NUMBER_RE.sub("", combined)
+    for match in _NUMBER_RE.findall(sanitized_for_nums):
         val = float(match)
         if not _is_number_grounded(val, allowed_numbers):
             return False, "validator_ungrounded_number"

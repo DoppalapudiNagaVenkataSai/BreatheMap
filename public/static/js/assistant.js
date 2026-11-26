@@ -152,7 +152,7 @@ function bindContextChipEditors() {
 function getRecentTurns() {
   try {
     const raw = sessionStorage.getItem(SESSION_HISTORY_KEY);
-    return raw ? JSON.parse(raw).slice(-2) : [];
+    return raw ? JSON.parse(raw).slice(-6) : [];
   } catch {
     return [];
   }
@@ -162,10 +162,24 @@ function saveTurn(text) {
   try {
     const turns = getRecentTurns();
     turns.push(String(text).slice(0, 300));
-    sessionStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(turns.slice(-2)));
+    sessionStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(turns.slice(-6)));
   } catch {
     // Ignore storage errors
   }
+}
+
+function appendThinkingBubble() {
+  const log = document.getElementById("assistant-chat-log");
+  if (!log) return null;
+  const div = document.createElement("div");
+  div.className = "chat-msg chat-msg-assistant chat-msg-thinking";
+  div.setAttribute("aria-live", "polite");
+  const p = document.createElement("p");
+  p.textContent = "Thinking…";
+  div.appendChild(p);
+  log.appendChild(div);
+  div.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  return div;
 }
 
 async function sendAssistantMessage(message) {
@@ -176,6 +190,7 @@ async function sendAssistantMessage(message) {
   if (statusEl) statusEl.textContent = "Thinking…";
 
   appendUserBubble(message);
+  const thinkingBubble = appendThinkingBubble();
 
   const loc = state.get(KEYS.LOCATION, DEFAULT_LOCATION);
   const scale = state.get(KEYS.SCALE, "naqi");
@@ -217,10 +232,12 @@ async function sendAssistantMessage(message) {
     const data = body.data;
     saveTurn(message);
     if (data.reply?.summary) saveTurn(data.reply.summary);
+    thinkingBubble?.remove();
     updateQuotaBanner(data);
     appendAssistantBubble(data);
     if (statusEl) statusEl.textContent = "Reply received.";
   } catch (err) {
+    thinkingBubble?.remove();
     appendErrorBubble(err.message || "Assistant temporarily unavailable.");
     if (statusEl) statusEl.textContent = "Error receiving reply.";
   } finally {

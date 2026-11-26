@@ -32,37 +32,54 @@ class GeminiClient(Protocol):
 
 
 class RealGeminiClient:
-    """Async Google GenAI SDK client with 20s timeout and no retries."""
+    """Async Google GenAI SDK client with timeout and model fallback."""
 
     def __init__(self, api_key: str, model: str = "gemini-3.8-flash") -> None:
         self._client = genai.Client(api_key=api_key)
         self._model = model
 
+    async def _call_model(
+        self, model_name: str, user_content: str, config: types.GenerateContentConfig
+    ) -> str:
+        response = await asyncio.wait_for(
+            self._client.aio.models.generate_content(
+                model=model_name,
+                contents=user_content,
+                config=config,
+            ),
+            timeout=GEMINI_TIMEOUT,
+        )
+        return response.text or ""
+
     async def generate(self, user_content: str) -> tuple[AssistantDraft | None, str | None]:
-        """Perform a single async generate_content call with structured output."""
+        """Perform an async generate_content call with structured output."""
         config = types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
             response_mime_type="application/json",
             response_schema=AssistantDraft,
             thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.LOW),
-            max_output_tokens=1024,
+            max_output_tokens=2048,
         )
         try:
-            response = await asyncio.wait_for(
-                self._client.aio.models.generate_content(
-                    model=self._model,
-                    contents=user_content,
-                    config=config,
-                ),
-                timeout=GEMINI_TIMEOUT,
-            )
-            raw_text = response.text or ""
+            raw_text = await self._call_model(self._model, user_content, config)
             draft = AssistantDraft.model_validate_json(raw_text)
             return draft, None
         except TimeoutError:
             return None, "gemini_timeout"
         except Exception as exc:
             msg = str(exc).lower()
+            if (
+                self._model != "gemini-2.5-flash"
+                and ("not found" in msg or "404" in msg or "not supported" in msg)
+            ):
+                try:
+                    raw_text = await self._call_model("gemini-2.5-flash", user_content, config)
+                    draft = AssistantDraft.model_validate_json(raw_text)
+                    return draft, None
+                except TimeoutError:
+                    return None, "gemini_timeout"
+                except Exception as fb_exc:
+                    msg = str(fb_exc).lower()
             if "429" in msg or "quota" in msg or "resource_exhausted" in msg:
                 return None, "gemini_rate_limited"
             if "json" in msg or "validation" in msg:

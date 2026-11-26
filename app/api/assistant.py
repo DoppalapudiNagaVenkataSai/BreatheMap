@@ -34,7 +34,7 @@ class AssistantChatRequest(BaseModel):
 
     message: str = Field(..., min_length=1, max_length=500)
     context: dict[str, Any] = Field(default_factory=dict)
-    recent_turns: list[str] = Field(default_factory=list, max_length=2)
+    recent_turns: list[str] = Field(default_factory=list, max_length=6)
 
 
 def get_gemini_client(settings: Settings = Depends(get_app_settings)) -> GeminiClient:
