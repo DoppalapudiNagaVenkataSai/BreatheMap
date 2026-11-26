@@ -30,9 +30,9 @@ class RouteCompareRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     origin: LatLon | None = None
-    origin_text: str | None = Field(default=None, min_length=2, max_length=120)
+    origin_text: str | None = Field(default=None, min_length=2, max_length=250)
     destination: LatLon | None = None
-    destination_text: str | None = Field(default=None, min_length=2, max_length=120)
+    destination_text: str | None = Field(default=None, min_length=2, max_length=250)
     departure_time: datetime | None = None
     flexibility_minutes: int = Field(default=120, ge=0, le=180)
     modes: list[Mode] | None = None

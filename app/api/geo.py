@@ -31,7 +31,7 @@ def get_geo_provider(request: Request, settings: Settings = Depends(get_app_sett
 
 @router.get("/geocode")
 async def geocode_query(
-    q: str = Query(..., min_length=2, max_length=100),
+    q: str = Query(..., min_length=2, max_length=250),
     lat: float | None = Query(default=None, ge=-90.0, le=90.0),
     lon: float | None = Query(default=None, ge=-180.0, le=180.0),
     geo_provider: Any = Depends(get_geo_provider),

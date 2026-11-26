@@ -110,7 +110,7 @@ export function attachPlaceAutocomplete({
 
     setStatus("Searching places…");
 
-    const params = new URLSearchParams({ q });
+    const params = new URLSearchParams({ q: q.slice(0, 250) });
     const bias = typeof getBiasCoords === "function" ? getBiasCoords() : null;
     if (bias && Number.isFinite(bias.lat) && Number.isFinite(bias.lon)) {
       params.set("lat", String(bias.lat));
@@ -121,8 +121,11 @@ export function attachPlaceAutocomplete({
       const headers = {};
       if (state.get(KEYS.DEMO, false)) headers["X-BreatheMap-Demo"] = "true";
       const res = await fetch(`/api/v1/geocode?${params.toString()}`, { headers, signal });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error?.message || "Search failed");
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setStatus(json?.error?.message || `Search unavailable (${res.status}) — try again.`);
+        return;
+      }
       const items = Array.isArray(json.data) ? json.data : [];
       currentItems = items;
       activeIndex = -1;
