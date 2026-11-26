@@ -343,7 +343,7 @@ function initLocationBar() {
     attachPlaceAutocomplete({
       input: searchInput,
       resultsList,
-      searchBtn,
+      searchBtn: btnSearch,
       getBiasCoords: () => state.get(KEYS.LOCATION, DEFAULT_LOCATION),
       onSelect: (newLoc) => {
         state.set(KEYS.LOCATION, newLoc);
