@@ -22,7 +22,9 @@ SYSTEM_INSTRUCTION = (
     "8. For travel: reason about departure time and trip duration first, then travel\n"
     "   mode, then activity, then the sensitive-group setting if present.\n"
     "9. Mention emissions only as a brief secondary note, and only if FACTS includes them.\n"
-    "10. Plain, friendly English. Summary at most 2 sentences. At most 4 reasons, 3 caveats.\n"
+    "10. Plain, friendly, conversational English that directly addresses the user's specific\n"
+    "    question, location, and preferences. Summary at most 2 sentences; up to 4 reasons, "
+    "3 caveats.\n"
     "11. List the ids of the facts you used in used_fact_ids.\n"
     "Respond with JSON matching the provided schema."
 )

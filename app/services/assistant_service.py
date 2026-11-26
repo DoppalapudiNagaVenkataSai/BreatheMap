@@ -52,9 +52,42 @@ _INTENT_CACHE_TTL: dict[Intent, int] = {
     Intent.REPORTS_NEARBY: 300,
 }
 
+_FOLLOWUP_CHIPS: dict[Intent, tuple[str, ...]] = {
+    Intent.AIR_NOW: (
+        "When is the cleanest time today?",
+        "When should I open my windows today?",
+        "Any smoke reported near me?",
+    ),
+    Intent.BEST_TIME: (
+        "Is it OK to jog during the cleanest window?",
+        "When should I open my windows today?",
+    ),
+    Intent.ACTIVITY_ADVICE: (
+        "When is the cleanest time today?",
+        "Any smoke reported near me?",
+    ),
+    Intent.ROUTE_COMPARE: (
+        "What if I leave 1 hour later?",
+        "Any smoke reported near me?",
+    ),
+    Intent.HOME_TIPS: (
+        "What's the air quality right now?",
+        "When is the cleanest time today?",
+    ),
+    Intent.REPORTS_NEARBY: (
+        "How do I report smoke?",
+        "What's the air quality right now?",
+    ),
+    Intent.EXPLAIN: (
+        "What's the air quality right now?",
+        "When is the cleanest time today?",
+    ),
+}
+
 
 def _build_cache_key(
     *,
+    message: str,
     intent: Intent,
     lat: float | None,
     lon: float | None,
@@ -69,8 +102,10 @@ def _build_cache_key(
     now: datetime,
 ) -> str:
     bucket_30m = int((dep_time or now).timestamp() // 1800)
+    norm_msg = " ".join(message.strip().lower().split())
     raw = json.dumps(
         {
+            "msg": norm_msg,
             "intent": intent.value,
             "lat": round(lat, 2) if lat is not None else None,
             "lon": round(lon, 2) if lon is not None else None,
@@ -441,6 +476,7 @@ class AssistantService:
         # 4. Cache lookup
         dest_key = parsed.destination_text or str(parsed.topic or "")
         cache_key = _build_cache_key(
+            message=message,
             intent=parsed.intent,
             lat=safe_lat,
             lon=safe_lon,
@@ -517,11 +553,17 @@ class AssistantService:
         if early_clarify is not None:
             return early_clarify
 
+        loc_label = str(context.get("label") or "").strip()
+        if loc_label:
+            bundle.add_fact("location_label", loc_label, source="user")
+
         resolved_ctx: dict[str, Any] = {
             "intent": parsed.intent.value,
+            "location_label": loc_label or None,
             "lat": round(lat, 3),
             "lon": round(lon, 3),
             "scale": scale.value,
+            "sensitive_groups": [s.value for s in sensitive],
             "departure_time": parsed.departure_time.isoformat() if parsed.departure_time else None,
             "duration_min": parsed.duration_min,
             "mode": parsed.mode.value if parsed.mode else None,
@@ -538,6 +580,10 @@ class AssistantService:
                         "value": hint.value,
                     }
                 )
+        for follow_label in _FOLLOWUP_CHIPS.get(parsed.intent, ()):
+            if len(chips) >= 3:
+                break
+            chips.append({"label": follow_label, "action": "followup"})
 
         facts_json = build_facts_json(bundle)
         reports_block = build_user_reports_block(bundle.user_reports)
@@ -547,6 +593,7 @@ class AssistantService:
         reason_code: str | None = None
         reply: dict[str, Any]
         ai_used = False
+        quick_ctx = {**resolved_ctx, "user_message": message}
 
         can_ai, quota_reason = await self.quota.can_use_ai(reporter_hash, now=ref_now)
         if can_ai:
@@ -576,13 +623,19 @@ class AssistantService:
                     }
                 else:
                     reason_code = val_err
-                    reply = build_quick_reply(parsed.intent, cards=cards, warnings=bundle.warnings)
+                    reply = build_quick_reply(
+                        parsed.intent, cards=cards, warnings=bundle.warnings, context=quick_ctx
+                    )
             else:
                 reason_code = err_code
-                reply = build_quick_reply(parsed.intent, cards=cards, warnings=bundle.warnings)
+                reply = build_quick_reply(
+                    parsed.intent, cards=cards, warnings=bundle.warnings, context=quick_ctx
+                )
         else:
             reason_code = quota_reason
-            reply = build_quick_reply(parsed.intent, cards=cards, warnings=bundle.warnings)
+            reply = build_quick_reply(
+                parsed.intent, cards=cards, warnings=bundle.warnings, context=quick_ctx
+            )
 
         self._log_turn(parsed.intent, answer_mode, False, ai_used, reason_code, t0)
         return {
