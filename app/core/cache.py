@@ -1,5 +1,6 @@
 """Two-level caching (L1 in-process LRU + L2 store)."""
 
+import contextlib
 import hashlib
 import json
 import time
@@ -7,6 +8,7 @@ from collections import OrderedDict
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+from app.core.errors import StorageUnavailableError
 from app.storage.base import CacheStore
 
 
@@ -62,15 +64,19 @@ async def get_or_set(
 
     # L2
     if cache_store:
-        val_l2 = await cache_store.get(key)
-        if val_l2 is not None:
-            l1_cache.set(key, val_l2, ttl_seconds)
-            return val_l2
+        try:
+            val_l2 = await cache_store.get(key)
+            if val_l2 is not None:
+                l1_cache.set(key, val_l2, ttl_seconds)
+                return val_l2
+        except StorageUnavailableError:
+            pass
 
     # Factory
     fresh_val = await factory()
     l1_cache.set(key, fresh_val, ttl_seconds)
     if cache_store:
-        await cache_store.set(key, fresh_val, ttl_seconds)
+        with contextlib.suppress(StorageUnavailableError):
+            await cache_store.set(key, fresh_val, ttl_seconds)
 
     return fresh_val

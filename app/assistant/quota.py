@@ -1,5 +1,6 @@
 """Gemini quota manager using CounterStore with E36 fallback."""
 
+import asyncio
 from datetime import UTC, datetime
 
 from app.config import Settings
@@ -38,15 +39,17 @@ class QuotaManager:
         daily_key, rpm_key, user_key = self._keys(reporter_hash, ref_now)
 
         try:
-            daily_count = await self.store.get_count(daily_key)
+            daily_count, rpm_count, user_count = await asyncio.gather(
+                self.store.get_count(daily_key),
+                self.store.get_count(rpm_key),
+                self.store.get_count(user_key),
+            )
             if daily_count >= self.settings.GEMINI_DAILY_LIMIT:
                 return False, "quota_daily_exhausted"
 
-            rpm_count = await self.store.get_count(rpm_key)
             if rpm_count >= self.settings.GEMINI_RPM_LIMIT:
                 return False, "quota_rpm_exhausted"
 
-            user_count = await self.store.get_count(user_key)
             if user_count >= self.settings.ASSISTANT_AI_PER_IP_PER_DAY:
                 return False, "quota_user_exhausted"
 
@@ -64,8 +67,10 @@ class QuotaManager:
         ref_now = now or datetime.now(UTC)
         daily_key, rpm_key, user_key = self._keys(reporter_hash, ref_now)
         try:
-            await self.store.increment(daily_key, window_seconds=86400)
-            await self.store.increment(rpm_key, window_seconds=60)
-            await self.store.increment(user_key, window_seconds=86400)
+            await asyncio.gather(
+                self.store.increment(daily_key, window_seconds=86400),
+                self.store.increment(rpm_key, window_seconds=60),
+                self.store.increment(user_key, window_seconds=86400),
+            )
         except StorageUnavailableError:
             return

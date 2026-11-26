@@ -13,12 +13,12 @@ from app.core.rate_limit import limiter
 from app.core.security import get_client_ip, hash_subject, verify_same_origin
 from app.dependencies import get_app_settings, get_http_client, get_store
 from app.providers.demo import DemoProvider
-from app.providers.nominatim import NominatimAdapter
 from app.providers.open_meteo_air import OpenMeteoAirAdapter
 from app.providers.open_meteo_weather import OpenMeteoWeatherAdapter
 from app.providers.ors import ORSAdapter
 from app.providers.osrm import OSRMAdapter
 from app.providers.overpass import OverpassAdapter
+from app.providers.photon import CompositeGeocodeProvider
 from app.services.air_service import AirService
 from app.services.assistant_service import AssistantService
 from app.services.report_service import ReportService
@@ -78,17 +78,23 @@ def get_assistant_service(
         osrm = OSRMAdapter(client)
         primary = ORSAdapter(client, ors_key) if ors_key else osrm
         fallback = osrm if ors_key else None
+        geo_prov = CompositeGeocodeProvider(
+            client,
+            ors_api_key=settings.ORS_API_KEY,
+            gemini_api_key=settings.GEMINI_API_KEY,
+            gemini_model=settings.GEMINI_MODEL,
+            gemini_enabled=settings.GEMINI_ENABLED,
+        )
         route_svc = RouteService(
             air_provider=OpenMeteoAirAdapter(client),
             weather_provider=OpenMeteoWeatherAdapter(client),
-            geo_provider=NominatimAdapter(client),
+            geo_provider=geo_prov,
             primary_router=primary,
             fallback_router=fallback,
             lighting_provider=OverpassAdapter(client),
             cache_store=store,
             report_store=store,
         )
-        geo_prov = NominatimAdapter(client)
 
     service = AssistantService(
         settings=settings,

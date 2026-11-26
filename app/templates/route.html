@@ -9,22 +9,26 @@
     <div class="form-grid">
       <div class="form-group">
         <label for="route-origin-input">From (Origin) <span class="req">*</span></label>
-        <div class="input-with-btn">
-          <input type="text" id="route-origin-input" name="origin" placeholder="Using your selected location" autocomplete="off" aria-describedby="origin-hint">
-          <button type="button" id="btn-origin-search" class="btn-secondary">Search</button>
+        <div class="autocomplete-wrapper">
+          <div class="input-with-btn">
+            <input type="text" id="route-origin-input" name="origin" placeholder="Search city, landmark, or coordinates" autocomplete="off" aria-describedby="origin-hint">
+            <button type="button" id="btn-origin-search" class="btn-secondary">Search</button>
+          </div>
+          <ul id="origin-results" class="results-list hidden" role="listbox" aria-label="Origin search results"></ul>
         </div>
-        <span id="origin-hint" class="field-hint">Defaults to your current bar location. Press Enter or Search to pick another place.</span>
-        <ul id="origin-results" class="results-list hidden" role="listbox" aria-label="Origin search results"></ul>
+        <span id="origin-hint" class="field-hint">Defaults to your current location. Start typing a place name to see suggestions.</span>
       </div>
 
       <div class="form-group">
         <label for="route-dest-input">To (Destination) <span class="req">*</span></label>
-        <div class="input-with-btn">
-          <input type="text" id="route-dest-input" name="destination" placeholder="e.g. New Delhi Railway Station" autocomplete="off" required aria-describedby="dest-hint">
-          <button type="button" id="btn-dest-search" class="btn-secondary">Search</button>
+        <div class="autocomplete-wrapper">
+          <div class="input-with-btn">
+            <input type="text" id="route-dest-input" name="destination" placeholder="e.g. Secunderabad Railway Station" autocomplete="off" required aria-describedby="dest-hint">
+            <button type="button" id="btn-dest-search" class="btn-secondary">Search</button>
+          </div>
+          <ul id="dest-results" class="results-list hidden" role="listbox" aria-label="Destination search results"></ul>
         </div>
-        <span id="dest-hint" class="field-hint">Type a landmark or area and press Enter or Search.</span>
-        <ul id="dest-results" class="results-list hidden" role="listbox" aria-label="Destination search results"></ul>
+        <span id="dest-hint" class="field-hint">Start typing any landmark, station, or area to pick from suggestions.</span>
       </div>
     </div>
 

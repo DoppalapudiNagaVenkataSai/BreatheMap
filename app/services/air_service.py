@@ -117,8 +117,8 @@ class AirService:
                     "wind_speed": current_wind,
                 },
                 "windows": {
-                    "cleanest": cleanest.model_dump() if cleanest else None,
-                    "worst": worst.model_dump() if worst else None,
+                    "cleanest": cleanest.model_dump(mode="json") if cleanest else None,
+                    "worst": worst.model_dump(mode="json") if worst else None,
                 },
                 "hourly": {
                     "times": time_strs[:24],

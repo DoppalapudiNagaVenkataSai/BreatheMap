@@ -3,7 +3,7 @@
  */
 import { fetchApi } from "./api.js";
 import { state, KEYS } from "./state.js";
-import { DEFAULT_LOCATION } from "./common.js";
+import { DEFAULT_LOCATION, attachPlaceAutocomplete } from "./common.js";
 
 const CATEGORY_LABELS = {
   smoke: "Smoke",
@@ -127,7 +127,19 @@ function initWatchView() {
     pickMode = true;
     showStatus("Click anywhere on the map to choose the report location.");
   });
-  document.getElementById("btn-report-loc-search")?.addEventListener("click", handleLocationSearch);
+  attachPlaceAutocomplete({
+    input: document.getElementById("report-loc-search"),
+    resultsList: document.getElementById("report-loc-results"),
+    searchBtn: document.getElementById("btn-report-loc-search"),
+    getBiasCoords: () => state.get(KEYS.LOCATION, DEFAULT_LOCATION),
+    onSelect: (place) => {
+      pickedLocation = {
+        lat: Number(Number(place.lat).toFixed(3)),
+        lon: Number(Number(place.lon).toFixed(3)),
+      };
+      updateSelectedCoordsText();
+    },
+  });
 
   form?.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -172,46 +184,6 @@ function handleUseMyLocation() {
     },
     { timeout: 6000 }
   );
-}
-
-async function handleLocationSearch() {
-  const input = document.getElementById("report-loc-search");
-  const list = document.getElementById("report-loc-results");
-  if (!input || !list) return;
-  const q = input.value.trim();
-  if (q.length < 2) return;
-
-  try {
-    const results = await fetchApi(`/api/v1/geocode?q=${encodeURIComponent(q)}`);
-    list.textContent = "";
-    if (!results || results.length === 0) {
-      const li = document.createElement("li");
-      li.textContent = `No places found for '${q}'.`;
-      list.appendChild(li);
-      list.classList.remove("hidden");
-      return;
-    }
-    results.forEach((place) => {
-      const li = document.createElement("li");
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "result-option-btn";
-      btn.textContent = place.label;
-      btn.addEventListener("click", () => {
-        pickedLocation = {
-          lat: Number(Number(place.lat).toFixed(3)),
-          lon: Number(Number(place.lon).toFixed(3)),
-        };
-        updateSelectedCoordsText();
-        list.classList.add("hidden");
-      });
-      li.appendChild(btn);
-      list.appendChild(li);
-    });
-    list.classList.remove("hidden");
-  } catch (err) {
-    showError(err.message || "Search failed.");
-  }
 }
 
 function updateSelectedCoordsText() {

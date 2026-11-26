@@ -66,12 +66,14 @@
           <button type="button" id="btn-report-use-loc" class="btn-secondary">Use my location</button>
           <button type="button" id="btn-report-pick-map" class="btn-secondary">Pick on map</button>
         </div>
-        <div class="input-with-btn watch-search-row">
-          <label for="report-loc-search" class="sr-only">Search place for report location</label>
-          <input type="text" id="report-loc-search" placeholder="Search a landmark or area…" autocomplete="off">
-          <button type="button" id="btn-report-loc-search" class="btn-secondary">Search</button>
+        <div class="autocomplete-wrapper">
+          <div class="input-with-btn watch-search-row">
+            <label for="report-loc-search" class="sr-only">Search place for report location</label>
+            <input type="text" id="report-loc-search" placeholder="Search a landmark or area…" autocomplete="off">
+            <button type="button" id="btn-report-loc-search" class="btn-secondary">Search</button>
+          </div>
+          <ul id="report-loc-results" class="results-list hidden" role="listbox" aria-label="Report location search results"></ul>
         </div>
-        <ul id="report-loc-results" class="results-list hidden" role="listbox" aria-label="Report location search results"></ul>
         <p id="report-selected-coords" class="field-hint">Selected coordinates: using current location</p>
       </div>
 

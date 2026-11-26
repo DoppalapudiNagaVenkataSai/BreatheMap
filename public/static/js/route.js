@@ -3,7 +3,12 @@
  */
 import { fetchApi } from "./api.js";
 import { state, KEYS } from "./state.js";
-import { DEFAULT_LOCATION, announce } from "./common.js";
+import {
+  DEFAULT_LOCATION,
+  announce,
+  attachPlaceAutocomplete,
+  parseLatLonText,
+} from "./common.js";
 import { RouteMap, MODE_STYLES } from "./map.js";
 
 let selectedOrigin = null;
@@ -53,11 +58,29 @@ function initRouteForm() {
     });
   }
 
-  setupSearchBox(originInput, btnOriginSearch, originResults, (loc) => {
-    selectedOrigin = loc;
+  attachPlaceAutocomplete({
+    input: originInput,
+    resultsList: originResults,
+    searchBtn: btnOriginSearch,
+    getBiasCoords: () => state.get(KEYS.LOCATION, DEFAULT_LOCATION),
+    onInputChange: () => {
+      selectedOrigin = null;
+    },
+    onSelect: (loc) => {
+      selectedOrigin = loc;
+    },
   });
-  setupSearchBox(destInput, btnDestSearch, destResults, (loc) => {
-    selectedDest = loc;
+  attachPlaceAutocomplete({
+    input: destInput,
+    resultsList: destResults,
+    searchBtn: btnDestSearch,
+    getBiasCoords: () => selectedOrigin || state.get(KEYS.LOCATION, DEFAULT_LOCATION),
+    onInputChange: () => {
+      selectedDest = null;
+    },
+    onSelect: (loc) => {
+      selectedDest = loc;
+    },
   });
 
   if (form) {
@@ -96,66 +119,6 @@ function updateNightOptionVisibility(whenVal) {
   const isNightHour = hour >= 18 || hour < 6;
   if (isNightHour) nightBox.classList.remove("hidden");
   else nightBox.classList.add("hidden");
-}
-
-function parseLatLonText(q) {
-  const m = /^\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)\s*$/.exec(q);
-  if (!m) return null;
-  const lat = parseFloat(m[1]);
-  const lon = parseFloat(m[2]);
-  if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
-    return { label: `${lat.toFixed(4)}, ${lon.toFixed(4)}`, lat, lon };
-  }
-  return null;
-}
-
-function setupSearchBox(input, btn, resultsList, onSelect) {
-  if (!input || !btn || !resultsList) return;
-  const performSearch = async () => {
-    const q = input.value.trim();
-    if (q.length < 2) return;
-    const directCoord = parseLatLonText(q);
-    if (directCoord) {
-      onSelect(directCoord);
-      input.value = directCoord.label;
-      resultsList.classList.add("hidden");
-      return;
-    }
-    resultsList.classList.remove("hidden");
-    resultsList.textContent = "Searching…";
-    try {
-      const items = await fetchApi(`/api/v1/geocode?q=${encodeURIComponent(q)}`);
-      resultsList.textContent = "";
-      if (!items.length) {
-        const li = document.createElement("li");
-        li.textContent = `No places found for '${q}'.`;
-        resultsList.appendChild(li);
-        return;
-      }
-      items.forEach((item) => {
-        const li = document.createElement("li");
-        const optBtn = document.createElement("button");
-        optBtn.type = "button";
-        optBtn.textContent = item.label;
-        optBtn.addEventListener("click", () => {
-          onSelect({ label: item.label, lat: item.lat, lon: item.lon });
-          input.value = item.label;
-          resultsList.classList.add("hidden");
-        });
-        li.appendChild(optBtn);
-        resultsList.appendChild(li);
-      });
-    } catch (e) {
-      resultsList.textContent = "Search is busy — try again in a few seconds.";
-    }
-  };
-  btn.addEventListener("click", performSearch);
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      performSearch();
-    }
-  });
 }
 
 function applyQueryPrefill() {

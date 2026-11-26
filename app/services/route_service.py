@@ -48,6 +48,7 @@ from app.providers.base import (
     RoutingProvider,
     WeatherProvider,
 )
+from app.providers.photon import CompositeGeocodeProvider
 from app.services.report_service import _format_public_report, _parse_dt, load_demo_reports
 from app.storage.base import CacheStore, ReportStore
 
@@ -119,7 +120,11 @@ class RouteService:
         self.report_store = report_store
 
     async def _resolve_point(
-        self, coord: LatLon | None, text: str | None, label_name: str
+        self,
+        coord: LatLon | None,
+        text: str | None,
+        label_name: str,
+        bias: LatLon | None = None,
     ) -> tuple[LatLon, str]:
         if coord is not None:
             return coord, f"{coord.lat:.4f}, {coord.lon:.4f}"
@@ -127,7 +132,10 @@ class RouteService:
             parsed_coord = _parse_lat_lon_text(text)
             if parsed_coord is not None:
                 return parsed_coord, f"{parsed_coord.lat:.4f}, {parsed_coord.lon:.4f}"
-            results = await self.geo_provider.search(text)
+            if bias is not None and isinstance(self.geo_provider, CompositeGeocodeProvider):
+                results = await self.geo_provider.search(text, lat=bias.lat, lon=bias.lon)
+            else:
+                results = await self.geo_provider.search(text)
             if not results:
                 raise ValidationAppError(
                     f"No places found for '{text}'. Try a nearby landmark or area name."
@@ -480,7 +488,9 @@ class RouteService:
         """Compare modes and routes by estimated PM2.5 inhaled."""
         ref_now = now or datetime.now(tz=UTC)
         origin, orig_label = await self._resolve_point(origin_coord, origin_text, "origin")
-        dest, dest_label = await self._resolve_point(dest_coord, dest_text, "destination")
+        dest, dest_label = await self._resolve_point(
+            dest_coord, dest_text, "destination", bias=origin
+        )
 
         straight_m = haversine_m(origin.lat, origin.lon, dest.lat, dest.lon)
         if straight_m < MIN_ROUTE_DISTANCE_M:

@@ -10,6 +10,225 @@ export const DEFAULT_LOCATION = {
   lon: 77.2167,
 };
 
+export function parseLatLonText(q) {
+  const m = /^\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)\s*$/.exec(q || "");
+  if (!m) return null;
+  const lat = parseFloat(m[1]);
+  const lon = parseFloat(m[2]);
+  if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+    return {
+      name: `${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+      subtitle: "Coordinates",
+      label: `${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+      lat,
+      lon,
+    };
+  }
+  return null;
+}
+
+function splitPlaceLabel(item) {
+  if (item.name) {
+    return { title: item.name, subtitle: item.subtitle || "" };
+  }
+  const parts = String(item.label || "").split(",");
+  const title = parts[0]?.trim() || item.label || "";
+  const subtitle = parts.slice(1).join(",").trim();
+  return { title, subtitle };
+}
+
+/**
+ * Attach Google Maps-style debounced place autocomplete to a text input.
+ */
+export function attachPlaceAutocomplete({
+  input,
+  resultsList,
+  searchBtn = null,
+  getBiasCoords = null,
+  onSelect,
+  onInputChange = null,
+  debounceMs = 280,
+}) {
+  if (!input || !resultsList) return;
+
+  let debounceTimer = null;
+  let activeController = null;
+  let activeIndex = -1;
+  let currentItems = [];
+
+  const hideResults = () => {
+    resultsList.classList.add("hidden");
+    activeIndex = -1;
+  };
+
+  const setStatus = (msg) => {
+    resultsList.textContent = "";
+    const li = document.createElement("li");
+    li.className = "results-status";
+    li.textContent = msg;
+    resultsList.appendChild(li);
+    resultsList.classList.remove("hidden");
+  };
+
+  const highlightIndex = (nextIdx) => {
+    const buttons = resultsList.querySelectorAll("li button");
+    if (!buttons.length) return;
+    buttons.forEach((b) => b.classList.remove("is-active"));
+    activeIndex = ((nextIdx % buttons.length) + buttons.length) % buttons.length;
+    buttons[activeIndex].classList.add("is-active");
+    buttons[activeIndex].scrollIntoView({ block: "nearest" });
+  };
+
+  const selectItem = (item) => {
+    const loc = { label: item.label, lat: item.lat, lon: item.lon };
+    input.value = item.label;
+    hideResults();
+    onSelect(loc);
+  };
+
+  const runSearch = async ({ autoSelectCoord = false } = {}) => {
+    const q = input.value.trim();
+    if (q.length < 2) {
+      hideResults();
+      return;
+    }
+
+    const directCoord = parseLatLonText(q);
+    if (directCoord) {
+      if (autoSelectCoord) {
+        selectItem(directCoord);
+      } else {
+        currentItems = [directCoord];
+        renderItems([directCoord]);
+      }
+      return;
+    }
+
+    if (activeController) activeController.abort();
+    activeController = new AbortController();
+    const { signal } = activeController;
+
+    setStatus("Searching places…");
+
+    const params = new URLSearchParams({ q });
+    const bias = typeof getBiasCoords === "function" ? getBiasCoords() : null;
+    if (bias && Number.isFinite(bias.lat) && Number.isFinite(bias.lon)) {
+      params.set("lat", String(bias.lat));
+      params.set("lon", String(bias.lon));
+    }
+
+    try {
+      const headers = {};
+      if (state.get(KEYS.DEMO, false)) headers["X-BreatheMap-Demo"] = "true";
+      const res = await fetch(`/api/v1/geocode?${params.toString()}`, { headers, signal });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || "Search failed");
+      const items = Array.isArray(json.data) ? json.data : [];
+      currentItems = items;
+      activeIndex = -1;
+      renderItems(items, q);
+    } catch (err) {
+      if (err?.name === "AbortError") return;
+      setStatus("Search is busy — try again in a few seconds.");
+    }
+  };
+
+  const renderItems = (items, queryText = "") => {
+    resultsList.textContent = "";
+    if (!items.length) {
+      setStatus(
+        queryText
+          ? `No places found for '${queryText}'. Try a nearby landmark or area.`
+          : "No places found."
+      );
+      return;
+    }
+    items.forEach((item) => {
+      const li = document.createElement("li");
+      li.setAttribute("role", "option");
+      const optBtn = document.createElement("button");
+      optBtn.type = "button";
+
+      const pin = document.createElement("span");
+      pin.className = "place-pin";
+      pin.setAttribute("aria-hidden", "true");
+      pin.textContent = "📍";
+
+      const textWrap = document.createElement("span");
+      textWrap.className = "place-text";
+      const { title, subtitle } = splitPlaceLabel(item);
+
+      const titleEl = document.createElement("span");
+      titleEl.className = "place-title";
+      titleEl.textContent = title;
+      textWrap.appendChild(titleEl);
+
+      if (subtitle) {
+        const subEl = document.createElement("span");
+        subEl.className = "place-subtitle";
+        subEl.textContent = subtitle;
+        textWrap.appendChild(subEl);
+      }
+
+      optBtn.appendChild(pin);
+      optBtn.appendChild(textWrap);
+      optBtn.addEventListener("click", () => selectItem(item));
+      li.appendChild(optBtn);
+      resultsList.appendChild(li);
+    });
+    resultsList.classList.remove("hidden");
+  };
+
+  input.addEventListener("input", () => {
+    if (typeof onInputChange === "function") onInputChange(input.value);
+    if (debounceTimer) clearTimeout(debounceTimer);
+    const q = input.value.trim();
+    if (q.length < 2) {
+      if (activeController) activeController.abort();
+      hideResults();
+      return;
+    }
+    debounceTimer = setTimeout(() => {
+      runSearch({ autoSelectCoord: false });
+    }, debounceMs);
+  });
+
+  input.addEventListener("keydown", (e) => {
+    const isVisible = !resultsList.classList.contains("hidden");
+    if (e.key === "ArrowDown" && isVisible) {
+      e.preventDefault();
+      highlightIndex(activeIndex + 1);
+    } else if (e.key === "ArrowUp" && isVisible) {
+      e.preventDefault();
+      highlightIndex(activeIndex - 1);
+    } else if (e.key === "Escape") {
+      hideResults();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (isVisible && activeIndex >= 0 && currentItems[activeIndex]) {
+        selectItem(currentItems[activeIndex]);
+      } else {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        runSearch({ autoSelectCoord: true });
+      }
+    }
+  });
+
+  if (searchBtn) {
+    searchBtn.addEventListener("click", () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      runSearch({ autoSelectCoord: true });
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    const target = e.target;
+    if (target !== input && target !== searchBtn && !resultsList.contains(target)) {
+      hideResults();
+    }
+  });
+}
+
 export function announce(message) {
   const el = document.getElementById("aria-announcer");
   if (el) {
@@ -118,59 +337,19 @@ function initLocationBar() {
   }
 
   if (btnSearch && searchInput && resultsList) {
-    const doSearch = async () => {
-      const q = searchInput.value.trim();
-      if (!q) return;
-      const coordMatch = /^\s*([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)\s*$/.exec(q);
-      if (coordMatch) {
-        const lat = parseFloat(coordMatch[1]);
-        const lon = parseFloat(coordMatch[2]);
-        if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
-          const newLoc = { label: `${lat.toFixed(4)}, ${lon.toFixed(4)}`, lat, lon };
-          state.set(KEYS.LOCATION, newLoc);
-          state.set(KEYS.DEMO, false);
-          updateLocationLabel(newLoc.label);
-          updateDemoBanner();
-          dialog.close();
-          emitChange();
-          return;
-        }
-      }
-      resultsList.textContent = "Loading results…";
-      try {
-        const results = await fetchApi(`/api/v1/geocode?q=${encodeURIComponent(q)}`);
-        resultsList.textContent = "";
-        if (results.length === 0) {
-          const li = document.createElement("li");
-          li.textContent = "No locations found";
-          resultsList.appendChild(li);
-          return;
-        }
-        results.forEach((item) => {
-          const li = document.createElement("li");
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.textContent = item.label;
-          btn.addEventListener("click", () => {
-            const newLoc = { label: item.label, lat: item.lat, lon: item.lon };
-            state.set(KEYS.LOCATION, newLoc);
-            updateLocationLabel(newLoc.label);
-            dialog.close();
-            emitChange();
-          });
-          li.appendChild(btn);
-          resultsList.appendChild(li);
-        });
-      } catch (e) {
-        resultsList.textContent = "Search service busy. Try again.";
-      }
-    };
-    btnSearch.addEventListener("click", doSearch);
-    searchInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        doSearch();
-      }
+    attachPlaceAutocomplete({
+      input: searchInput,
+      resultsList,
+      searchBtn,
+      getBiasCoords: () => state.get(KEYS.LOCATION, DEFAULT_LOCATION),
+      onSelect: (newLoc) => {
+        state.set(KEYS.LOCATION, newLoc);
+        state.set(KEYS.DEMO, false);
+        updateLocationLabel(newLoc.label);
+        updateDemoBanner();
+        dialog.close();
+        emitChange();
+      },
     });
   }
 }

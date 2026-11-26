@@ -34,6 +34,7 @@ from app.constants import ASSISTANT_CACHE_TTL, HOME_TIPS_CACHE_TTL
 from app.core.cache import get_or_set
 from app.domain.models import LatLon, Scale, SensitiveGroup
 from app.providers.base import GeocodeProvider
+from app.providers.photon import CompositeGeocodeProvider
 from app.services.air_service import AirService
 from app.services.report_service import ReportService
 from app.services.route_service import RouteService
@@ -235,12 +236,24 @@ class AssistantService:
         parsed: ParsedMessage,
         context: dict[str, Any],
         is_demo: bool,
+        *,
+        bias_lat: float | None = None,
+        bias_lon: float | None = None,
     ) -> tuple[LatLon | None, dict[str, Any] | None]:
         raw_dest = context.get("destination")
         if isinstance(raw_dest, dict) and "lat" in raw_dest and "lon" in raw_dest:
             return LatLon(lat=float(raw_dest["lat"]), lon=float(raw_dest["lon"])), None
         if parsed.destination_text:
-            matches = await self.geo_provider.search(parsed.destination_text)
+            if (
+                bias_lat is not None
+                and bias_lon is not None
+                and isinstance(self.geo_provider, CompositeGeocodeProvider)
+            ):
+                matches = await self.geo_provider.search(
+                    parsed.destination_text, lat=bias_lat, lon=bias_lon
+                )
+            else:
+                matches = await self.geo_provider.search(parsed.destination_text)
             if not matches:
                 return None, _clarify_response(
                     intent=parsed.intent,
@@ -309,7 +322,7 @@ class AssistantService:
 
         if parsed.intent == Intent.ROUTE_COMPARE:
             dest_coord, clarify_err = await self._resolve_route_destination(
-                parsed, context, is_demo
+                parsed, context, is_demo, bias_lat=lat, bias_lon=lon
             )
             if clarify_err is not None:
                 return [], clarify_err

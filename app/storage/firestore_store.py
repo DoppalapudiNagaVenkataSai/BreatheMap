@@ -250,7 +250,7 @@ class FirestoreStore:
                 .document(doc_id)
                 .set(
                     {
-                        "value": json.dumps(value),
+                        "value": json.dumps(value, default=str),
                         "expires_at": expires_at,
                     }
                 )
